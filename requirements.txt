@@ -1,0 +1,7 @@
+# Core dependencies for the engineering-stamp placement tool.
+# Pinned to the minimum major versions that were validated during development.
+streamlit>=1.37          # st.fragment (stable) for lag-free per-card updates
+streamlit-image-coordinates>=0.4.0
+PyMuPDF>=1.24
+Pillow>=10.0
+numpy>=1.26

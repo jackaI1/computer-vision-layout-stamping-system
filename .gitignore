@@ -1,0 +1,61 @@
+# ---------------------------------------------------------------------------
+# Proprietary / confidential content — NEVER commit these.
+#   stamps/  : real Professional Engineer seals (include legal signatures)
+#   samples/ : client drawing sets
+# The folders are kept in the repo via .gitkeep, but their contents are ignored.
+# ---------------------------------------------------------------------------
+stamps/*
+!stamps/.gitkeep
+samples/*
+!samples/.gitkeep
+
+# Generated / stamped output
+*_stamped.pdf
+output/
+
+# Synthetic example artefacts. Regenerate with examples/make_sample_sheet.py --
+# they are outputs, not source, and keeping them out proves no real sheet or
+# seal can arrive here by accident.
+examples/sample_*.pdf
+examples/sample_*.png
+
+# ---------------------------------------------------------------------------
+# Python
+# ---------------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# ---------------------------------------------------------------------------
+# Tooling / editors / OS
+# ---------------------------------------------------------------------------
+.streamlit/secrets.toml
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Local scratch files. Anchored to the repo root so package files like
+# stamper/__init__.py are kept.
+/_*.py
+/_*.png
+/_*.pdf
+/_*.log
+/_pkgtest/
+
+# PyInstaller intermediate (the .spec under packaging/ is kept; build output is not)
+*.spec.bak
