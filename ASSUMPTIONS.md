@@ -71,9 +71,8 @@ standards — most are adjustable in the sidebar or `stamper/config.py`.
 11. **Page rotation is handled.** The whole pipeline works in *display* space
     (the visually‑upright page), so analysis, previews, keep‑out and placement
     all use the orientation you see. Seals and dates are rotated back to upright
-    on insert. Verified on example 1 (0°) **and** example 2 (270°) — the seal and
-    date render upright in both. 90°/180° use the same mechanism but were not
-    exercised on a real sheet.
+    on insert. Synthetic regression tests cover 0°, 90°, 180° and 270°, including
+    non-zero page origins.
 
 ## Sizing, scoring & search
 
@@ -83,16 +82,17 @@ standards — most are adjustable in the sidebar or `stamper/config.py`.
     circular seal footprint. Designated‑box and clean‑whitespace placements
     score ~0 %, so they sort to the bottom (least likely to need attention).
 14. **Ink threshold = 180/255.** Faint/very light linework below this contrast
-    is treated as whitespace. Lower it in the sidebar if you want the search to
-    avoid light linework too.
+    is treated as whitespace. Raise it in the sidebar if you want the search to
+    avoid lighter linework too.
 15. Whitespace is scored over a **square** footprint for speed during the search;
     the final reported coverage uses the exact **circle**. The square is a slight
     over‑estimate, which is conservative (errs toward more clearance).
 15a. **Ties for least ink are broken by clearance.** On a sparse sheet many
     footprints are completely ink‑free, so the minimum is not unique. When that
     happens the tool picks the most isolated candidate: the centre around which
-    the largest ink‑free **square** fits entirely on the page, measured in O(1)
-    with the same summed‑area table (no distance‑transform dependency). Because
+    the largest ink-free **square** fits entirely on the page. An exact binary
+    search over integer pixel padding scores each square in O(1) using the same
+    summed-area table (no distance-transform dependency). Because
     the squares are bounded by the page edges, the seal is centred in open space
     rather than hugging a margin. This only re‑orders among already‑equal
     (least‑ink) spots; it never trades ink coverage for clearance. Disable via
@@ -122,8 +122,9 @@ standards — most are adjustable in the sidebar or `stamper/config.py`.
     not the exact PDF Helvetica and the image is rasterised. The **downloaded
     PDF** is the source of truth: real, crisp, non‑flattened seal image + real
     text date. Always trust the PDF over the preview for final appearance.
-21. **Multiple files** are de‑duplicated by content (identical PDFs uploaded
-    twice are processed once). Each file's settings come from the single shared
+21. **Multiple files** are de-duplicated by name and content (a repeated
+    identical upload is processed once; different filenames remain distinct).
+    Each file's settings come from the single shared
     sidebar — there is no per‑file override. A true OS “folder picker” isn't
     available to browsers; multi‑select the files instead.
 21a. **“Download all” saves each PDF individually, not as a ZIP.** A sandboxed
@@ -143,6 +144,8 @@ standards — most are adjustable in the sidebar or `stamper/config.py`.
     redraws without the seal — while keeping the computed placement so “Add stamp
     back” restores it exactly. Removal is the operator's deliberate choice and is
     remembered across setting changes (but cleared by “Recompute from scratch”).
-22. **Default preview zoom‑out is 10×** the seal diameter (~5× more area than the
-    original close‑up). Adjust with the *Preview zoom‑out* slider; it only
-    affects the preview, never the output.
+22. **Default preview shows the whole page.** Increase *Preview zoom* to focus
+    on the seal; this affects only previews, never the output.
+23. **No guessed coverage on analysis failures.** Unreadable pages cause a clear
+    file error. Small sheets shrink the seal to avoid the reserved corner; a
+    fully reserved sheet is refused until the keep-out settings are reduced.

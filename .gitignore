@@ -59,3 +59,14 @@ Thumbs.db
 
 # PyInstaller intermediate (the .spec under packaging/ is kept; build output is not)
 *.spec.bak
+
+# Local dependencies, private configuration, and audit/recording caches
+node_modules/
+.env
+.env.*
+!.env.example
+!.env.sample
+.runtime/
+recordings/
+dist/
+build/

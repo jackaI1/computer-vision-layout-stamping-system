@@ -21,7 +21,7 @@ from .occupancy import analyze_page, disk_coverage, find_min_ink_spot, PageOccup
 # Bump this whenever placement logic changes. It is folded into the app's cache
 # keys so that a plain Streamlit "Rerun" (which keeps cached/session data alive)
 # can never serve placements produced by older, buggy logic.
-PLACEMENT_LOGIC_VERSION = 6
+PLACEMENT_LOGIC_VERSION = 7
 
 
 @dataclass
@@ -78,10 +78,19 @@ def _safe_corner_placement(page_index: int, pw: float, ph: float, d: float,
     """A guaranteed on-sheet placement at the bottom-left (opposite the top-right
     keep-out). The diameter is shrunk to fit pages smaller than the seal and the
     centre is clamped so the whole disk stays on the page."""
-    d = min(d, pw, ph)
+    # A small sheet may not fit the nominal seal or padding. Shrink to the
+    # largest bottom-left square that avoids the top-right reserved rectangle.
+    kos = keepout_rects(pw, ph, settings)
+    kx0, _, _, ky1 = kos[0]
+    available = max(min(max(0.0, kx0), ph), min(pw, max(0.0, ph - ky1)))
+    if available <= 0:
+        raise ValueError("The reserved corner covers the whole page; reduce its fractions or padding.")
+    d = min(d, pw, ph, available)
     half = d / 2.0
     cx = min(max(settings.margin_left_pt + half, half), pw - half)
     cy = min(max(ph - settings.margin_bottom_pt - half, half), ph - half)
+    if intersects_keepout(cx, cy, d, kos):
+        cx, cy = half, ph - half
     cov = disk_coverage(occ, cx, cy, d) if occ is not None else 0.0
     return Placement(page_index, cx, cy, d, source, cov, pw, ph)
 
@@ -124,21 +133,15 @@ def place_one_page(page: "fitz.Page", page_index: int, settings: Settings,
 def compute_placements(doc: "fitz.Document", settings: Settings) -> list[Placement]:
     """Compute placements for every page, sorted by coverage descending.
 
-    A page that fails to rasterise/analyse (broken content stream, missing
-    resource) must not sink the whole batch -- it falls back to a safe corner
-    placement so the rest of the file can still be reviewed and stamped.
+    Fail explicitly when a page cannot be analysed or has no legal placement.
+    A guessed corner with zero coverage would misrepresent an unreadable page.
     """
     placements: list[Placement] = []
     for i in range(doc.page_count):
         try:
             placements.append(place_one_page(doc[i], i, settings))
-        except Exception:
-            try:
-                pw, ph = doc[i].rect.width, doc[i].rect.height
-            except Exception:
-                pw, ph = 612.0, 792.0
-            placements.append(_safe_corner_placement(
-                i, pw, ph, settings.stamp_diameter_pt, settings))
+        except Exception as exc:
+            raise ValueError(f"Could not place a stamp on page {i + 1}: {exc}") from exc
     placements.sort(key=lambda p: p.coverage, reverse=True)
     return placements
 
@@ -182,7 +185,7 @@ def sanitize_placements(doc: "fitz.Document", placements: dict[int, Placement],
             continue
         if placement_in_keepout(p, settings):
             newp = place_one_page(doc[idx], idx, settings)
-            if placement_in_keepout(newp, settings):
+            if newp.source == "whitespace" and placement_in_keepout(newp, settings):
                 # Re-placement still landed in the corner (degenerate page where
                 # the search returns the same blocked spot). Force a guaranteed
                 # bottom-left, on-sheet position so the documented guarantee holds.

@@ -221,3 +221,76 @@ def test_disk_coverage_is_stricter_than_the_square_search_estimate():
     ink[20:23, 20:23] = True                # corner of the 20pt square at (30,30)
     occ = make_occ(ink)
     assert occupancy.disk_coverage(occ, 30.0, 30.0, 20.0) == pytest.approx(0.0)
+
+
+def test_clearance_selects_exact_largest_square_between_sampled_radii():
+    # Candidate 0 has radius 107 (page edge); candidate 1 has radius 108
+    # (ink at x=458). Coarsely sampling radii picks candidate 0 incorrectly.
+    ink = np.zeros((220, 500), dtype=bool)
+    ink[:, 458] = True
+    got = occupancy._most_open_candidate(
+        occupancy._integral_image(ink), np.array([102, 345]),
+        np.array([105]), 10, np.ones((1, 2), dtype=bool))
+    assert got == 1
+
+
+def test_search_clips_bounds_to_page():
+    spot = occupancy.find_min_ink_spot(
+        make_occ(np.zeros((40, 40), dtype=bool)), 8, loose_settings(),
+        bounds_pt=(-20, -20, 70, 70))
+    assert spot is not None
+    assert 4 <= spot.center_x_pt <= 36
+    assert 4 <= spot.center_y_pt <= 36
+
+
+def test_fractional_margins_do_not_round_outward():
+    spot = occupancy.find_min_ink_spot(
+        make_occ(np.zeros((40, 40), dtype=bool)), 8,
+        loose_settings(margin_left_in=0.9 / 72, maximize_clearance=False))
+    assert spot.center_x_pt - 4 >= 0.9
+
+
+def test_clearance_never_trades_ink_for_open_space():
+    ink = np.ones((100, 100), dtype=bool)
+    ink[2:12, 2:12] = False
+    spot = occupancy.find_min_ink_spot(make_occ(ink), 10, loose_settings())
+    assert spot.coverage == 0
+    assert (spot.center_x_pt, spot.center_y_pt) == (7, 7)
+
+
+def test_fractional_diameter_cannot_fit_a_smaller_page():
+    assert occupancy.find_min_ink_spot(
+        make_occ(np.zeros((8, 8), dtype=bool)), 8.4, loose_settings()) is None
+
+
+def test_full_grid_search_matches_bruteforce_global_square_minimum():
+    rng = np.random.default_rng(93)
+    ink = rng.random((80, 90)) < .3
+    d, step = 9, 3
+    expected = min(ink[y:y+d, x:x+d].sum()
+                   for y in range(0, 80-d+1, step)
+                   for x in range(0, 90-d+1, step))
+    spot = occupancy.find_min_ink_spot(
+        make_occ(ink), d, loose_settings(search_step_pt=step))
+    assert spot.coverage == pytest.approx(expected / (d*d))
+
+
+@pytest.mark.parametrize('d', [1, 3, 8])
+def test_exact_clearance_matches_bruteforce_for_odd_and_even_footprints(d):
+    ink = np.zeros((33, 35), dtype=bool)
+    ink[12, 21] = True
+    xs = np.arange(0, 35-d+1, 2)
+    ys = np.arange(0, 33-d+1, 2)
+    scores = []
+    for y in ys:
+        for x in xs:
+            best = -1
+            for pad in range(min(x, y, 35-x-d, 33-y-d)+1):
+                if ink[y-pad:y+d+pad, x-pad:x+d+pad].any():
+                    break
+                best = pad
+            scores.append(best)
+    got = occupancy._most_open_candidate(
+        occupancy._integral_image(ink), xs, ys, d,
+        np.ones((len(ys), len(xs)), dtype=bool))
+    assert got == int(np.argmax(scores))

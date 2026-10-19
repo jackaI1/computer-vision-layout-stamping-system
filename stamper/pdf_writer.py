@@ -108,7 +108,8 @@ def _insert_one(page: "fitz.Page", placement: Placement, stamp: StampAsset,
 
     # Date sits in the seal's top hole, centred horizontally. A generously
     # sized textbox (so it never silently overflows) is rotated to match.
-    fs = settings.date_font_pt
+    unit = fitz.get_text_length(date_str, fontname="helv", fontsize=1.0)
+    fs = min(settings.date_font_pt, d * 0.88 / max(unit, 1.0), d * 0.2)
     cx = disp_rect.x0 + DATE_REL_X * d
     cy = disp_rect.y0 + DATE_REL_Y * d
     half_w = d * 0.45

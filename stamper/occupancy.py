@@ -22,7 +22,7 @@ from .config import Settings
 @dataclass
 class PageOccupancy:
     ink: np.ndarray          # bool mask, shape (H, W) in analysis pixels
-    integral: np.ndarray     # int64 summed-area table, shape (H+1, W+1)
+    integral: np.ndarray     # uint32 summed-area table, shape (H+1, W+1)
     scale: float             # analysis pixels per point
     width_pt: float
     height_pt: float
@@ -77,8 +77,8 @@ def _most_open_candidate(integral: np.ndarray, xs: np.ndarray, ys: np.ndarray,
 
     "Most isolated" is the candidate around which the largest ink-free square
     fits *entirely on the page* -- a square clearance measure. Reusing the
-    summed-area table, each square is scored in O(1), so a handful of radii cover
-    the whole tie set quickly (and without a heavy distance-transform
+    summed-area table, each square is scored in O(1). A vectorised binary search
+    finds the exact largest square for every tied candidate (without a distance-transform
     dependency). Because the squares must stay on the page, edges bound them and
     the seal is pulled toward the middle of a void rather than against a margin.
 
@@ -90,31 +90,28 @@ def _most_open_candidate(integral: np.ndarray, xs: np.ndarray, ys: np.ndarray,
     """
     height = integral.shape[0] - 1
     width = integral.shape[1] - 1
-    centers_x = xs + d // 2
-    centers_y = ys + d // 2
     rows, cols = np.nonzero(eligible)
-    cx = centers_x[cols]
-    cy = centers_y[rows]
-
-    half = d // 2
-    r_max = max(half, min(height, width) // 2)
-    radii = np.unique(np.linspace(half, r_max, 16).astype(np.int64))[::-1]
-    for r in radii:
-        x0, x1 = cx - r, cx + r
-        y0, y1 = cy - r, cy + r
-        on_page = (x0 >= 0) & (y0 >= 0) & (x1 <= width) & (y1 <= height)
-        if not on_page.any():
-            continue
-        # Clip so masked-out (off-page) candidates can't raise on indexing.
-        x0c, x1c = np.clip(x0, 0, width), np.clip(x1, 0, width)
-        y0c, y1c = np.clip(y0, 0, height), np.clip(y1, 0, height)
-        ink = (integral[y1c, x1c] - integral[y0c, x1c]
-               - integral[y1c, x0c] + integral[y0c, x0c])
-        clear = on_page & (ink == 0)
-        if clear.any():
-            j = int(np.argmax(clear))
-            return int(rows[j]) * eligible.shape[1] + int(cols[j])
-    return None
+    if not len(rows):
+        return None
+    x, y = xs[cols], ys[rows]
+    # Expand the actual footprint symmetrically, including its last row/column
+    # for odd diameters. Clear squares are monotonic in their integer padding.
+    low = np.full(len(rows), -1, dtype=np.int64)
+    high = np.minimum.reduce([x, y, width - x - d, height - y - d]) + 1
+    while np.any(high - low > 1):
+        active = np.flatnonzero(high - low > 1)
+        mid = (low[active] + high[active]) // 2
+        x0, y0 = x[active] - mid, y[active] - mid
+        x1, y1 = x[active] + d + mid, y[active] + d + mid
+        ink = (integral[y1, x1] - integral[y0, x1]
+               - integral[y1, x0] + integral[y0, x0])
+        clear = ink == 0
+        low[active[clear]] = mid[clear]
+        high[active[~clear]] = mid[~clear]
+    j = int(np.argmax(low))
+    if low[j] < 0:
+        return None
+    return int(rows[j]) * eligible.shape[1] + int(cols[j])
 
 
 @dataclass
@@ -153,7 +150,7 @@ def find_min_ink_spot(
         detected cell). Defaults to the whole page minus the margin.
     """
     s = occ.scale
-    d = max(1, int(round(diameter_pt * s)))
+    d = max(1, int(np.ceil(diameter_pt * s)))
     H, W = occ.ink.shape
 
     if bounds_pt is None:
@@ -167,8 +164,8 @@ def find_min_ink_spot(
         bx0, by0, bx1, by1 = (v * s for v in bounds_pt)
         x0, y0, x1, y1 = bx0, by0, bx1, by1
 
-    x_lo, x_hi = int(np.floor(x0)), int(np.ceil(x1)) - d
-    y_lo, y_hi = int(np.floor(y0)), int(np.ceil(y1)) - d
+    x_lo, x_hi = int(np.ceil(max(0, x0))), int(np.floor(min(W, x1))) - d
+    y_lo, y_hi = int(np.ceil(max(0, y0))), int(np.floor(min(H, y1))) - d
     if x_hi < x_lo or y_hi < y_lo:
         return None
 
