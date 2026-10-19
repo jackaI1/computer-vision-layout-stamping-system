@@ -1,6 +1,6 @@
 # Computer Vision Layout Stamping System
 
-![Demo](docs/demo.gif)
+https://github.com/user-attachments/assets/99f5f4f9-794a-405d-a2f0-83a99de0e934
 
 Before a set of technical drawings can be issued, a certifying mark has to be
 placed on every page — in a spot that does not cover anything important, on
