@@ -1,0 +1,100 @@
+[
+  {
+    "name": "altgraph",
+    "version": "0.17.5",
+    "license": "MIT",
+    "class": "permissive",
+    "source": "https://pypi.org/project/altgraph/0.17.5/",
+    "license_files": [
+      "THIRD_PARTY_LICENSES/windows-build-tools/altgraph/altgraph-0.17.5.dist-info/LICENSE"
+    ]
+  },
+  {
+    "name": "macholib",
+    "version": "1.16.4",
+    "license": "MIT",
+    "class": "permissive",
+    "source": "https://pypi.org/project/macholib/1.16.4/",
+    "license_files": [
+      "THIRD_PARTY_LICENSES/windows-build-tools/macholib/macholib-1.16.4.dist-info/LICENSE"
+    ]
+  },
+  {
+    "name": "packaging",
+    "version": "26.3",
+    "license": "Apache-2.0 OR BSD-2-Clause",
+    "class": "permissive",
+    "source": "https://pypi.org/project/packaging/26.3/",
+    "license_files": [
+      "THIRD_PARTY_LICENSES/windows-build-tools/packaging/packaging-26.3.dist-info/licenses/LICENSE",
+      "THIRD_PARTY_LICENSES/windows-build-tools/packaging/packaging-26.3.dist-info/licenses/LICENSE.APACHE",
+      "THIRD_PARTY_LICENSES/windows-build-tools/packaging/packaging-26.3.dist-info/licenses/LICENSE.BSD"
+    ]
+  },
+  {
+    "name": "pefile",
+    "version": "2024.8.26",
+    "license": "MIT",
+    "class": "permissive",
+    "source": "https://pypi.org/project/pefile/2024.8.26/",
+    "license_files": [
+      "THIRD_PARTY_LICENSES/windows-build-tools/pefile/pefile-2024.8.26.dist-info/LICENSE"
+    ]
+  },
+  {
+    "name": "pyinstaller",
+    "version": "6.20.0",
+    "license": "GPLv2-or-later with a special exception which allows to use PyInstaller to build and distribute non-free programs (including commercial ones)",
+    "class": "strong copyleft (build-time; applicable exceptions retained)",
+    "source": "https://pypi.org/project/pyinstaller/6.20.0/",
+    "license_files": [
+      "THIRD_PARTY_LICENSES/windows-build-tools/pyinstaller/pyinstaller-6.20.0.dist-info/licenses/COPYING.txt"
+    ]
+  },
+  {
+    "name": "pyinstaller-hooks-contrib",
+    "version": "2026.8",
+    "license": "GPL-2.0-or-later (build hooks); Apache-2.0 (runtime hooks)",
+    "class": "strong copyleft (build-time; applicable exceptions retained)",
+    "source": "https://pypi.org/project/pyinstaller-hooks-contrib/2026.8/",
+    "license_files": [
+      "THIRD_PARTY_LICENSES/windows-build-tools/pyinstaller-hooks-contrib/pyinstaller_hooks_contrib-2026.8.dist-info/licenses/LICENSE"
+    ]
+  },
+  {
+    "name": "pywin32-ctypes",
+    "version": "0.2.3",
+    "license": "BSD-3-Clause",
+    "class": "permissive",
+    "source": "https://pypi.org/project/pywin32-ctypes/0.2.3/",
+    "license_files": [
+      "THIRD_PARTY_LICENSES/windows-build-tools/pywin32-ctypes/pywin32_ctypes-0.2.3.dist-info/LICENSE.txt"
+    ]
+  },
+  {
+    "name": "setuptools",
+    "version": "84.2.0",
+    "license": "MIT",
+    "class": "permissive",
+    "source": "https://pypi.org/project/setuptools/84.2.0/",
+    "license_files": [
+      "THIRD_PARTY_LICENSES/windows-build-tools/setuptools/setuptools-84.2.0.dist-info/licenses/LICENSE",
+      "THIRD_PARTY_LICENSES/windows-build-tools/setuptools/setuptools/_vendor/autocommand-2.2.2.dist-info/LICENSE",
+      "THIRD_PARTY_LICENSES/windows-build-tools/setuptools/setuptools/_vendor/backports.tarfile-1.2.0.dist-info/LICENSE",
+      "THIRD_PARTY_LICENSES/windows-build-tools/setuptools/setuptools/_vendor/importlib_metadata-8.7.1.dist-info/licenses/LICENSE",
+      "THIRD_PARTY_LICENSES/windows-build-tools/setuptools/setuptools/_vendor/jaraco.text-4.0.0.dist-info/LICENSE",
+      "THIRD_PARTY_LICENSES/windows-build-tools/setuptools/setuptools/_vendor/jaraco_context-6.1.0.dist-info/licenses/LICENSE",
+      "THIRD_PARTY_LICENSES/windows-build-tools/setuptools/setuptools/_vendor/jaraco_functools-4.4.0.dist-info/licenses/LICENSE",
+      "THIRD_PARTY_LICENSES/windows-build-tools/setuptools/setuptools/_vendor/more_itertools-10.8.0.dist-info/licenses/LICENSE",
+      "THIRD_PARTY_LICENSES/windows-build-tools/setuptools/setuptools/_vendor/packaging-26.3.dist-info/licenses/LICENSE",
+      "THIRD_PARTY_LICENSES/windows-build-tools/setuptools/setuptools/_vendor/packaging-26.3.dist-info/licenses/LICENSE.APACHE",
+      "THIRD_PARTY_LICENSES/windows-build-tools/setuptools/setuptools/_vendor/packaging-26.3.dist-info/licenses/LICENSE.BSD",
+      "THIRD_PARTY_LICENSES/windows-build-tools/setuptools/setuptools/_vendor/platformdirs-4.4.0.dist-info/licenses/LICENSE",
+      "THIRD_PARTY_LICENSES/windows-build-tools/setuptools/setuptools/_vendor/tomli-2.4.0.dist-info/licenses/LICENSE",
+      "THIRD_PARTY_LICENSES/windows-build-tools/setuptools/setuptools/_vendor/wheel-0.46.3.dist-info/licenses/LICENSE.txt",
+      "THIRD_PARTY_LICENSES/windows-build-tools/setuptools/setuptools/_vendor/zipp-3.23.0.dist-info/licenses/LICENSE",
+      "THIRD_PARTY_LICENSES/windows-build-tools/setuptools/setuptools/config/NOTICE",
+      "THIRD_PARTY_LICENSES/windows-build-tools/setuptools/setuptools/config/_validate_pyproject/NOTICE"
+    ]
+  }
+]

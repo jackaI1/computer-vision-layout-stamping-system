@@ -1,0 +1,20 @@
+{
+  "name": "PyInstaller",
+  "version": "6.20.0",
+  "license": "GPLv2-or-later with a special exception which allows to use PyInstaller to build and distribute non-free programs (including commercial ones)",
+  "requires_dist": [
+    "altgraph",
+    "importlib-metadata>=4.6; python_version < \"3.10\"",
+    "macholib>=1.8; sys_platform == \"darwin\"",
+    "packaging>=22.0",
+    "pefile>=2022.5.30; sys_platform == \"win32\"",
+    "pyinstaller-hooks-contrib>=2026.4",
+    "pywin32-ctypes>=0.2.1; sys_platform == \"win32\"",
+    "setuptools>=42.0.0",
+    "argcomplete; extra == \"completion\"",
+    "execnet>=1.5.0; extra == \"hook-testing\"",
+    "psutil; extra == \"hook-testing\"",
+    "pytest>=2.7.3; extra == \"hook-testing\""
+  ],
+  "source": "https://pypi.org/project/pyinstaller/6.20.0/"
+}

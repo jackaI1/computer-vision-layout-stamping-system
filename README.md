@@ -146,7 +146,7 @@ Unreadable pages are reported, rather than assigned an unmeasured zero-ink score
 ## Tests
 
 ```bash
-pip install pytest
+pip install -r requirements-dev.txt
 python -m pytest -q
 ```
 
@@ -208,5 +208,9 @@ excluded. **No real professional seal appears in this
 repository** — seals are legal signatures, `.gitignore` excludes the `stamps/`
 directory entirely, and the seal in the demo is drawn from scratch by the
 example script.
+## License
 
-Licensed under the MIT License.
+MIT, see LICENSE. Third-party components are listed in THIRD_PARTY_NOTICES.md.
+
+The project’s own source remains MIT. PyMuPDF 1.26.7 is an unmodified, separately installed AGPL-3.0 dependency; it is not relicensed by this repository’s LICENSE. Anyone distributing a combined application must satisfy the AGPL, including the applicable corresponding-source and license obligations. Network deployment may also trigger AGPL source-access obligations. MIT does not waive them. A commercial PyMuPDF license is a separate alternative. See [upstream licensing](https://pymupdf.io/licensing), the preserved AGPL text, and THIRD_PARTY_NOTICES.md.
+

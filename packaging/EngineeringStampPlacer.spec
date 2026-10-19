@@ -60,6 +60,11 @@ datas += copy_metadata("streamlit", recursive=True)
 datas += [(os.path.join(ROOT, "app.py"), "."),
           (os.path.join(ROOT, "stamper"), "stamper")]
 
+# Retain project and third-party licensing alongside every packaged build.
+datas += [(os.path.join(ROOT, name), ".")
+          for name in ("LICENSE", "README.md", "THIRD_PARTY_NOTICES.md")]
+datas += [(os.path.join(ROOT, "THIRD_PARTY_LICENSES"), "THIRD_PARTY_LICENSES")]
+
 # Bundle the seal PNGs from stamps/ as built-in defaults so a fresh install ships
 # with the standard seals already in the dropdown (app reads these from
 # ``sys._MEIPASS/stamps`` — see BUNDLED_STAMPS_DIR in app.py). Recipients can
