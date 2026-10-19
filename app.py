@@ -219,14 +219,14 @@ def _placement_sig(placements: list[Placement]) -> tuple:
 # --------------------------------------------------------------------------- #
 # Sidebar — seal, date, settings
 # --------------------------------------------------------------------------- #
-_NAME_SUFFIX_DEFAULT = "_DLE Stamped"
+_NAME_SUFFIX_DEFAULT = "_stamped"
 
 
 @st.cache_data(show_spinner=False)
-def _read_seal_bytes(path_str: str, _fingerprint: tuple) -> bytes:
+def _read_seal_bytes(path_str: str, fingerprint: tuple) -> bytes:
     """Read a seal PNG, cached so it isn't re-fetched on every rerun — important
     when the app runs from a network share (the read is otherwise an SMB
-    round-trip each interaction). ``_fingerprint`` is (mtime_ns, size); including
+    round-trip each interaction). ``fingerprint`` is (mtime_ns, size); including
     it means replacing a same-named seal file on disk invalidates the cache, so a
     swapped seal is never served stale (a real hazard for a legal seal)."""
     return Path(path_str).read_bytes()
@@ -271,7 +271,7 @@ def _sidebar() -> tuple[bytes | None, str, str, str, Settings]:
 
     name_suffix = st.sidebar.text_input(
         "Stamped file name suffix", value=_NAME_SUFFIX_DEFAULT,
-        help="Appended to each file name, e.g. O36-A.pdf → O36-A_DLE Stamped.pdf.")
+        help="Appended to each file name, e.g. drawing.pdf → drawing_stamped.pdf.")
 
     st.sidebar.header("2. Placement settings")
     s = DEFAULT_SETTINGS
@@ -280,6 +280,8 @@ def _sidebar() -> tuple[bytes | None, str, str, str, Settings]:
     fit_box = st.sidebar.checkbox("Fit to 'ENGINEER STAMP' box when present", True)
     font_pt = st.sidebar.slider("Date font size (pt)", 6.0, 14.0,
                                 float(s.date_font_pt), 0.5)
+    date_hex = st.sidebar.color_picker("Date colour", "#000000")
+    date_color = tuple(int(date_hex[i:i + 2], 16) / 255 for i in (1, 3, 5))
     zoom_in = st.sidebar.slider("Preview zoom (1 = whole page)", 1.0, 8.0,
                                 float(s.preview_zoom), 0.5,
                                 help="1 shows the entire page; higher zooms in "
@@ -311,6 +313,7 @@ def _sidebar() -> tuple[bytes | None, str, str, str, Settings]:
         stamp_diameter_in=diameter,
         fit_stamp_to_engineer_box=fit_box,
         date_font_pt=font_pt,
+        date_color=date_color,
         bottom_text=bottom_text,
         preview_zoom=zoom_in,
         flatten_output=flatten,
@@ -422,7 +425,8 @@ def _apply_to_all_pages(fid: str, pdf_bytes: bytes, cx: float, cy: float,
         # page can't run off the sheet; on normal pages this is a no-op. Keep it
         # within the slider's range so the written widget value is always valid.
         pd = min(dia, op.page_width_pt, op.page_height_pt)
-        pd = min(max(pd, _DIA_MIN_IN * 72.0), _DIA_MAX_IN * 72.0)
+        pd = min(max(pd, _DIA_MIN_IN * 72.0), _DIA_MAX_IN * 72.0,
+                 op.page_width_pt, op.page_height_pt)
         half = pd / 2.0
         ncx = min(max(cx, half), op.page_width_pt - half)
         ncy = min(max(cy, half), op.page_height_pt - half)
@@ -481,6 +485,17 @@ def _review_card(fid: str, pdf_bytes: bytes, idx: int, stamp: StampAsset,
         st.session_state[kx] = st.session_state[kxn] = round(auto.center_x_pt / 72.0, 2)
         st.session_state[ky] = st.session_state[kyn] = round(auto.center_y_pt / 72.0, 2)
         st.session_state[kd] = round(auto.diameter_pt / 72.0, 2)
+
+    # Small pages can need seals below the normal fine-tune range. Clamp before
+    # creating widgets, including after diameter changes and apply-to-all.
+    dia_max = min(_DIA_MAX_IN, pw / 72.0, ph / 72.0)
+    dia_min = min(_DIA_MIN_IN, dia_max / 2)
+    st.session_state[kd] = min(max(st.session_state[kd], dia_min), dia_max)
+    half_in = st.session_state[kd] / 2
+    st.session_state[kx] = st.session_state[kxn] = min(
+        max(st.session_state[kx], half_in), pw / 72.0 - half_in)
+    st.session_state[ky] = st.session_state[kyn] = min(
+        max(st.session_state[ky], half_in), ph / 72.0 - half_in)
 
     # Current placement is driven entirely by the slider session-state values.
     cx = st.session_state[kx] * 72.0
@@ -587,7 +602,7 @@ def _review_card(fid: str, pdf_bytes: bytes, idx: int, stamp: StampAsset,
             # Range kept wide so it always contains the current value regardless
             # of the default-diameter and min/max settings. Step 0.01 matches the
             # X/Y boxes so every 2-dp value (from reset/apply-to-all) is on-grid.
-            st.slider("Diameter (in)", _DIA_MIN_IN, _DIA_MAX_IN, key=kd, step=0.01)
+            st.slider("Diameter (in)", dia_min, dia_max, key=kd, step=0.01)
             if st.button("⇊ Apply this position to every page", key=f"applyall_{fid}_{idx}",
                          help="Set every page in this file to this seal's position and size."):
                 # Defer: _apply_to_all_pages writes per-page widget keys, which is
@@ -663,6 +678,10 @@ def _make_download_callable(fid: str, pdf_bytes: bytes, stamp: StampAsset,
     def _generate() -> bytes:
         placements = [p for i, p in placements_map.items() if i not in removed]
         try:
+            with fitz.open(stream=pdf_bytes, filetype="pdf") as doc:
+                fixed, _ = sanitize_placements(
+                    doc, {p.page_index: p for p in placements}, settings)
+            placements = list(fixed.values())
             return _render_stamped(fid, _placement_sig(placements), date_str,
                                    stamp.digest, settings_key, placements, stamp,
                                    settings, pdf_bytes)
@@ -713,7 +732,7 @@ def _render_file_ui(name: str, fid: str, pdf_bytes: bytes, stamp: StampAsset,
         f"⬇️ Download “{stamped_name}”",
         data=_make_download_callable(fid, pdf_bytes, stamp, date_str, settings),
         file_name=stamped_name,
-        mime="application/pdf", key=f"dl_{fid}", type="primary",
+        mime="application/pdf", key=f"dl_{fid}", type="primary", on_click="ignore",
     )
 
     n_pages = len(st.session_state["placements"][fid])
@@ -934,8 +953,17 @@ def main() -> None:
             return
 
     # Sync placements for every selected file (rendering is deferred to download).
-    for _name, fid, pdf_bytes in files:
-        _prepare_file(fid, pdf_bytes, settings)
+    ready_files = []
+    for name, fid, pdf_bytes in files:
+        try:
+            _prepare_file(fid, pdf_bytes, settings)
+        except ValueError as exc:
+            st.error(f"“{name}” was skipped: {exc}")
+            continue
+        ready_files.append((name, fid, pdf_bytes))
+    files = ready_files
+    if not files:
+        return
 
     # Drop a deferred apply-to-all whose file is no longer selected, so it can't
     # fire later against a re-selected file.

@@ -45,7 +45,8 @@ seal wherever the scan happened to start, which is hard against a margin.
 
 The tie is broken by **clearance**: among the candidates tied for least ink,
 pick the one at the centre of the largest ink-free square that still fits on the
-page. Because those squares are bounded by the page edges, the result is pulled
+page, using an exact binary search over integer pixel padding. Because those
+squares are bounded by the page edges, the result is pulled
 toward the middle of open space rather than into a corner. It reuses the same
 summed-area table, so each clearance test is also O(1) — no distance transform,
 no new dependency.
@@ -76,7 +77,8 @@ on real title blocks that box legitimately overlaps the reserved corner. The
 
 The exclusion is enforced in three places — at search time, via a logic-version
 value folded into every cache key, and by an uncached sanitising pass that runs
-before every preview and download. That is more than it sounds like it needs,
+before previews and again when generating a download. That is more than it
+sounds like it needs,
 and the reason is that a stale cached placement survives a plain rerun; belt and
 braces on the one failure that would put a mark somewhere it legally must not
 be.
@@ -94,6 +96,10 @@ content is.
 
 ## Try it in two commands
 
+Use **Python 3.10 or newer** (verified with Python 3.12), preferably in a fresh
+virtual environment: `python3.12 -m venv .venv`, then
+`source .venv/bin/activate` (Windows: `.venv\Scripts\activate`).
+
 ```bash
 pip install -r requirements.txt
 python examples/make_sample_sheet.py
@@ -106,7 +112,7 @@ placement pipeline over both, and writes stamped copies. Observed output:
 --- cover ------------------------------------------------
   page 1: source=engineer_box centre=( 2273.5,  846.5) pt  dia= 230.4 pt  ink= 0.00%
 --- notes ------------------------------------------------
-  page 1: source=whitespace   centre=( 1590.5,  786.5) pt  dia= 136.8 pt  ink= 0.21%
+  page 1: source=whitespace   centre=( 1027.5, 1189.5) pt  dia= 136.8 pt  ink= 0.16%
 ```
 
 Two different code paths, deliberately:
@@ -118,7 +124,7 @@ Two different code paths, deliberately:
   above — which is the bigger, emptier target.
 - **`notes`** is a dense details sheet with no labelled cell and almost no free
   space. The whitespace search has to work for it, and reports the ink it could
-  not avoid (`0.21%`) rather than pretending it found a clean spot.
+  not avoid (`0.16%`) rather than pretending it found a clean spot.
 
 Generate one at a time with `--variant cover` or `--variant notes`.
 
@@ -132,23 +138,30 @@ Automatic placement is a starting point, not a verdict. The UI exposes
 click-to-place, positional sliders, seal diameter, apply-to-all-pages,
 per-page removal, the reserved-corner fractions and padding, the caption text,
 the date's font size and colour, and a full recompute that discards every cached
-placement.
+placement. The date font shrinks if needed to fit a small seal. Set all three
+reserved-corner controls to zero to search the full sheet. If the reserved region
+covers a whole page, the app asks you to reduce it instead of placing a seal in it.
+Unreadable pages are reported, rather than assigned an unmeasured zero-ink score.
 
 ## Tests
 
 ```bash
 pip install pytest
-python -m pytest tests/ -q     # 18 tests
+python -m pytest -q
 ```
 
-The integral image is verified against brute-force cumulative sums at *every*
-cell, and the window sums against brute force over a random mask. The rest cover
-the behaviour that is easy to get subtly wrong: keep-out rectangles are
-respected, a keep-out covering the whole page returns nothing rather than a bad
-placement, the clearance tie-break provably moves the mark off the corner that
-plain `argmin` would choose, and disk coverage is stricter than the square
-estimate. `PageOccupancy` is a plain dataclass, so all of this runs on synthetic
-NumPy masks with no PDF involved — the suite finishes in under a second.
+Tests use generated NumPy masks, PDFs and seal images. They compare the summed-area
+search and exact clearance tie-break with brute force, exercise designated cells,
+reserved corners, small pages, every rotation and offset page origins, preserve
+existing PDF content streams, and verify selectable dates and optional flattening.
+Streamlit tests cover manual moves, mixed-size apply-to-all, removal/restoration,
+reset, padding, colour, cache invalidation and live downloads.
+
+The search minimizes **square ink on a configurable grid** (6 pt by default),
+then reports the fraction of ink pixels within the circular footprint. This is
+not the percentage of all linework on the page, nor a proof of the global minimum
+for circular coverage. Coverage and runtime depend on the input; the film's
+specific percentages and manual-work timing comparison are illustrative.
 
 ## Scope and limitations
 
@@ -166,8 +179,8 @@ NumPy masks with no PDF involved — the suite finishes in under a second.
   part of the collision search — only the circular mark is. On a tight cell it
   may cross the cell's bottom rule by a few points. Shorten or clear the caption,
   or reduce the diameter.
-- **Rotation is handled for 0° and 270°**, which were exercised on real sheets.
-  90° and 180° use the same mechanism but were not.
+- **Rotation is tested at 0°, 90°, 180° and 270°**, including synthetic sheets
+  with non-zero page origins.
 - **Previews are an approximation.** The on-screen preview composites onto a
   cached raster and does not use the PDF's own font. The downloaded PDF is the
   source of truth.
@@ -190,9 +203,8 @@ tests/            pytest suite over the search
 
 ## Provenance
 
-Developed at **D.L. Engineering Inc.** and published with the firm's written
-permission. Client drawings, firm documents, internal identifiers and
-proprietary data are excluded. **No real professional seal appears in this
+Client drawings, firm documents, internal identifiers and proprietary data are
+excluded. **No real professional seal appears in this
 repository** — seals are legal signatures, `.gitignore` excludes the `stamps/`
 directory entirely, and the seal in the demo is drawn from scratch by the
 example script.

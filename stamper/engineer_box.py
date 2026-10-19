@@ -16,9 +16,8 @@ import numpy as np
 
 from .occupancy import PageOccupancy
 
-# Search terms in priority order. PyMuPDF search is case-sensitive, so list the
-# common casings explicitly.
-_LABELS = ["ENGINEER STAMP", "Engineer Stamp", "ENGINEERS STAMP", "ENGINEER'S STAMP"]
+# Search terms in priority order (PyMuPDF search ignores ASCII case).
+_LABELS = ["ENGINEER STAMP", "ENGINEERING STAMP", "ENGINEERS STAMP", "ENGINEER'S STAMP"]
 
 # A raster row/column is considered a ruling line of the title block when this
 # fraction of it (over the relevant span) is ink.
@@ -82,9 +81,9 @@ def derive_box(
     left = _scan_for_line(col_frac, start=label_cx_px, step=-1)
     right = _scan_for_line(col_frac, start=label_cx_px, step=+1)
     if left is None:
-        left = max(0, int(round((lx0 - 6 * s))))
+        left = max(0, int(round((lx0 - 6) * s)))
     if right is None:
-        right = min(W - 1, int(round((lx1 + 6 * s))))
+        right = min(W - 1, int(round((lx1 + 6) * s)))
 
     inner_l = left + max(2, int(round(3 * s)))
     inner_r = right - max(2, int(round(3 * s)))
