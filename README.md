@@ -2,7 +2,7 @@
 
 A local PDF tool that places seal images in designated cells or low-ink regions, lets an operator review each placement, and exports stamped PDFs.
 
-https://github.com/user-attachments/assets/99f5f4f9-794a-405d-a2f0-83a99de0e934
+https://github.com/user-attachments/assets/2c6b30d5-4233-4636-81d8-8c19c80bb429
 
 ## Overview
 
