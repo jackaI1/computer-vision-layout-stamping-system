@@ -185,6 +185,10 @@ ASSUMPTIONS.md               adjustable drawing and seal conventions
 
 ## License
 
+Developed at D.L. Engineering Inc. and published with the firm's written
+permission. Client drawings, firm documents, internal identifiers and
+proprietary data are excluded.
+
 Original project source is MIT; see [`LICENSE`](LICENSE). PyMuPDF 1.26.7 is
 AGPL-3.0: combined distributions require applicable corresponding-source and
 licence compliance, and network deployments may require source access. MIT does
