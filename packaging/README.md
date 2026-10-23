@@ -40,7 +40,7 @@ This produces `dist\EngineeringStampPlacer-Setup.exe`.
 ## Updating machines that already have the app
 
 Feature changes that touch only `app.py` / `stamper/` plus the bundled default seals (no
-new dependencies) don't need a full reinstall — the packaged app stores that source as plain
+new dependencies) don't need a full reinstall; the packaged app stores that source as plain
 files under `_internal/` and reads its built-in seals from `_internal\stamps`.
 Build a single self-contained updater:
 
@@ -58,18 +58,18 @@ that one file to each machine; the engineer double-clicks it and it:
    folder (a new sub-folder each run, so re-running never clobbers an earlier rollback point),
 3. swaps in the new `app.py` + `stamper/` and refreshes the bundled seals in `_internal\stamps`.
 
-> ⚠️ The `.bat` embeds the P.Eng. seal PNGs — a legal signature. Distribute it **only** to
+> ⚠️ The `.bat` embeds the P.Eng. seal PNGs, which are a legal signature. Distribute it **only** to
 > people authorised to apply those seals, exactly as you would the built app or installer.
 
 No reinstall, no admin rights. (If a machine's antivirus blocks the `.bat`, or you'd rather
 not patch in place, just rebuild `Setup.exe` with the version bumped in `installer.iss` and
-re-run it — the fixed `AppId` makes it upgrade the existing install. Or send the whole new
+re-run it; the fixed `AppId` makes it upgrade the existing install. Or send the whole new
 `dist\EngineeringStampPlacer\` folder and have them replace the old one.)
 
 ## How it works
 
 - `desktop_app.py` is the entry point. It starts the Streamlit server on a free
-  local port, waits for it to come up, and opens the default browser — so the
+  local port, waits for it to come up, and opens the default browser, so the
   user just sees the app, not a terminal command.
 - `EngineeringStampPlacer.spec` tells PyInstaller to bundle Streamlit (including
   its compiled front-end), the `streamlit-image-coordinates` component, PyMuPDF,
@@ -83,7 +83,7 @@ re-run it — the fixed `AppId` makes it upgrade the existing install. Or send t
    shortcut). A small status window opens and the app appears in the browser.
 2. In the sidebar, **pick a seal** from the built-in defaults, or choose
    *Upload a seal…* to use your own PNG. (You can also drop extra seal files into
-   the `stamps` folder next to the executable and restart — they appear in the
+   the `stamps` folder next to the executable and restart; they appear in the
    dropdown alongside the bundled defaults, and a same-named file overrides one.)
 3. Upload one or more drawing PDFs, review the placements, and download the
    stamped files.

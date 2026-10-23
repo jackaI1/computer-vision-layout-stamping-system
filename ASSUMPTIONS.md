@@ -2,7 +2,7 @@
 
 These are the judgement calls baked into the tool, derived from the sample sheet
 set and seal it was developed against. Check them against your own drawing
-standards — most are adjustable in the sidebar or `stamper/config.py`.
+standards; most are adjustable in the sidebar or `stamper/config.py`.
 
 ## Seal image & date
 
@@ -11,13 +11,13 @@ standards — most are adjustable in the sidebar or `stamper/config.py`.
 2. **The seal already includes the signature**, so the tool does *not* add one.
    It adds the **date** and a **caption under the circle** (see item 4a).
 3. **Date goes in the upper “top hole”** of the circular seal, centred
-   horizontally, at relative position `(0.50, 0.30)` of the seal box — measured
+   horizontally, at relative position `(0.50, 0.30)` of the seal box, measured
    from the sample seal (inner band lines at ~0.37 and ~0.62 of height). If your
    seals have a different layout, adjust `DATE_REL_X` / `DATE_REL_Y` in
    `config.py`.
 4. **Date format `YYYY-MM-DD`, 9 pt, black, Helvetica.** Font size is adjustable
    in the sidebar; colour is in `config.py`.
-4a. **Caption under the seal — default “FOR STRUCTURAL ITEMS ONLY”.** Printed as
+4a. **Caption under the seal, default “FOR STRUCTURAL ITEMS ONLY”.** Printed as
    real Helvetica text, black, centred under the circle, and **auto‑sized so its
    width matches the seal diameter** (`BOTTOM_TEXT_WIDTH_FRAC = 0.98`). It is a
    **default‑on** option, fully editable in the sidebar; **clear the field to
@@ -36,7 +36,7 @@ standards — most are adjustable in the sidebar or `stamper/config.py`.
 ## “ENGINEER STAMP” box detection
 
 6. The label is matched by the literal text `ENGINEER STAMP` (plus a few casings
-   / apostrophe variants). It relies on the PDF having **real text** — it will
+   / apostrophe variants). It relies on the PDF having **real text**; it will
    not find a label that is part of a rasterised image. The sample PDFs have
    real text, and detection worked on all 10 pages.
 7. When found, the seal is **centred in the cell** and sized to `0.86 ×` the
@@ -52,11 +52,11 @@ standards — most are adjustable in the sidebar or `stamper/config.py`.
    the large blank box at the **top of the right title‑block column** (above the
    topmost labelled cell in the sample sheet). The keep‑out defaults to the top‑right
    **20 % width × 32 % height** of the sheet, plus **1.5 in** padding. Check that
-   these fractions cover your reserved area — they are sliders in the sidebar
+   these fractions cover your reserved area; they are sliders in the sidebar
    (“Advanced”). The reserved corner is assumed to be the
    **visual top‑right** on every sheet; there is no per‑sheet corner override.
 10. The keep‑out only blocks the **automatic whitespace search**. A designated
-    “ENGINEER STAMP” cell is **exempt** — it is an explicit “stamp here” and, in
+    “ENGINEER STAMP” cell is **exempt**: it is an explicit “stamp here” and, in
     example 1, the cell legitimately overlaps the default keep‑out rectangle, so
     exempting it is required to honour your instruction. A manual click can still
     place a seal anywhere (you're in control), but the UI shows a clear **warning**
@@ -125,23 +125,23 @@ standards — most are adjustable in the sidebar or `stamper/config.py`.
 21. **Multiple files** are de-duplicated by name and content (a repeated
     identical upload is processed once; different filenames remain distinct).
     Each file's settings come from the single shared
-    sidebar — there is no per‑file override. A true OS “folder picker” isn't
+    sidebar; there is no per‑file override. A true OS “folder picker” isn't
     available to browsers; multi‑select the files instead.
 21a. **“Download all” saves each PDF individually, not as a ZIP.** A sandboxed
     web app can't write into a real folder on disk (the File System Access API
     is blocked in Streamlit's component iframe), so the button downloads the
     files individually instead. It clicks every per‑file download button in one
     back‑to‑back burst, reusing the data Streamlit already loaded for those
-    buttons — so it is as fast as the individual downloads and works for large
+    buttons, so it is as fast as the individual downloads and works for large
     drawing sets. Re‑encoding every PDF into one inline payload, or downloading
     one‑per‑rerun, is far slower. Each file is the exact byte stream the single
-    download produces — no ZIP, no recompression, no quality loss, which matters
+    download produces, with no ZIP, recompression or quality loss, which matters
     for sealed drawings issued as records. The browser may
     show a one‑time “download multiple files?” permission prompt. The button
     appears at both the top and bottom of the review list.
 21b. **Removing a stamp is per‑page and non‑destructive.** “Remove stamp” marks
-    a page to be left unstamped — it is excluded from the output and its preview
-    redraws without the seal — while keeping the computed placement so “Add stamp
+    a page to be left unstamped (it is excluded from the output and its preview
+    redraws without the seal) while keeping the computed placement so “Add stamp
     back” restores it exactly. Removal is the operator's deliberate choice and is
     remembered across setting changes (but cleared by “Recompute from scratch”).
 22. **Default preview shows the whole page.** Increase *Preview zoom* to focus
