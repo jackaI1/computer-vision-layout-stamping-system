@@ -1,10 +1,10 @@
 # Seal-stamping design/process FMEA register
 
-Document: QMS-FMEA-001, revision 2. **GENERATED**; edit `fmea.json`.
+Document: QMS-FMEA-001, revision 3. **GENERATED**; edit `fmea.json`.
 
 Method, scoring rubric and limits: [FMEA.md](FMEA.md). Regenerate with `python quality/fmea_report.py`.
 
-**15 failure modes; 15 verified software actions; 15 open actions.** Scores describe current controls. No residual reduction or field failure rates are claimed. Software evidence is limited to synthetic tests; see the [executed IQ/OQ record](validation/IQ-OQ-EXECUTED.md).
+**16 failure modes; 16 verified software actions; 16 open actions.** Scores describe current controls. No residual reduction or field failure rates are claimed. Software evidence is limited to synthetic tests; see the [executed IQ/OQ record](validation/IQ-OQ-EXECUTED.md).
 
 High-severity modes (S >= 8) appear first, then descending RPN within each group. Review triggers do not constitute production acceptance.
 
@@ -24,6 +24,7 @@ High-severity modes (S >= 8) appear first, then descending RPN within each group
 | [FM-07](#fm-07) | design / Export PDF | Original content is degraded or unintentionally flattened | 8 | 3 | 4 | 96 | Review before issue |
 | [FM-10](#fm-10) | design / Validate / analyze inputs | Skipped or failed input is mistaken for a completed zero-coverage page | 8 | 3 | 3 | 72 | Review before issue |
 | [FM-14](#fm-14) | process / Change / revalidate | FMEA actions or validation evidence silently become stale | 7 | 4 | 3 | 84 | Planned improvement |
+| [FM-16](#fm-16) | process / Commercialization review | Readiness or IP decision cites missing or invented evidence | 5 | 3 | 5 | 75 | Maintain controls |
 | [FM-13](#fm-13) | design / Serve review preview | Dependency incompatibility prevents reliable visual review | 6 | 3 | 3 | 54 | Maintain controls |
 
 ## FM-01
@@ -319,6 +320,27 @@ High-severity modes (S >= 8) appear first, then descending RPN within each group
 | --- | --- | --- | --- | --- |
 | ACT-27: Validate scores, ownership/status, exact related test IDs, high-severity review priority and generated-report freshness in CI. | Maintainer | verified_automated | Invalid/unrelated evidence fails; stale report returns nonzero without overwrite; S >= 8 triggers review even at low RPN. | [`tests/test_fmea.py::test_fmea_rejects_test_evidence_unrelated_to_linked_requirements`](../tests/test_fmea.py#L92)<br>[`tests/test_fmea.py::test_fmea_cli_detects_drift_and_invalid_input_without_overwriting`](../tests/test_fmea.py#L126)<br>[`tests/test_fmea.py::test_fmea_priority_keeps_high_severity_visible`](../tests/test_fmea.py#L60) |
 | ACT-28: Reassess scores/actions after deviations, new drawing families or changes to placement/export/settings/dependencies. | Tool owner / reviewer | open | Review FMEA with each change request, rerun CI/IQ-OQ and document representative PQ before production. Open actions require real evidence, not merely a linked test name. | [`tests/test_fmea.py::test_fmea_rejects_test_evidence_unrelated_to_linked_requirements`](../tests/test_fmea.py#L92)<br>[`tests/test_fmea.py::test_fmea_cli_detects_drift_and_invalid_input_without_overwriting`](../tests/test_fmea.py#L126)<br>[`tests/test_fmea.py::test_fmea_priority_keeps_high_severity_visible`](../tests/test_fmea.py#L60) |
+
+## FM-16
+
+**Readiness or IP decision cites missing or invented evidence** (process; Commercialization review).
+
+- Effect: A release or research proposal overstates the available support.
+- Cause: Paths move, patent numbers are mistyped or external publication metadata changes.
+- Requirements: [REQ-25](TRACEABILITY_MATRIX.md)
+- Current prevention: Dated reviewed publication register; explicit public-prototype TRL scope and unresolved field gates.
+- Current detection: Offline path and citation checks in CI; optional live number/title verification. Neither establishes legal status or field readiness.
+
+| Score | Current rating | Rationale |
+| --- | ---: | --- |
+| Severity | 5 | An unsupported decision can waste pilot resources; this document does not authorise drawing issue. |
+| Occurrence | 3 | Manual citation edits and source changes are plausible, with no measured rate. |
+| Detection | 5 | Automated checks catch broken citations, but interpretation needs qualified review. |
+
+| Action | Owner | Status | Acceptance / closure evidence | Verification tests |
+| --- | --- | --- | --- | --- |
+| ACT-31: Reject missing paths, unreviewed numbers and mismatched live publication identity. | Maintainer | verified_automated | Valid evidence passes; broken citations, invented numbers, mismatched metadata and network failure are rejected. | [`tests/test_commercialization.py::test_assessment_citations_and_cli`](../tests/test_commercialization.py#L23)<br>[`tests/test_commercialization.py::test_broken_or_invented_citations_fail`](../tests/test_commercialization.py#L37)<br>[`tests/test_commercialization.py::test_live_metadata_requires_number_and_title`](../tests/test_commercialization.py#L53)<br>[`tests/test_commercialization.py::test_network_failure_is_not_a_pass`](../tests/test_commercialization.py#L60) |
+| ACT-32: Obtain supervised pilot evidence and professional IP review before broader commercial release. | Tool owner | open | Record fixed-release field outcomes and legal review privately. Citation integrity is not acceptance of maturity or freedom to operate. | [`tests/test_commercialization.py::test_assessment_citations_and_cli`](../tests/test_commercialization.py#L23) |
 
 ## FM-13
 

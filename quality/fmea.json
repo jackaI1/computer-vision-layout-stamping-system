@@ -1,6 +1,6 @@
 {
   "document": "QMS-FMEA-001",
-  "revision": 2,
+  "revision": 3,
   "failure_modes": [
     {
       "id": "FM-01",
@@ -723,6 +723,54 @@
             "tests/test_cad_cli.py::test_documented_inspect_edit_stamp_plot_workflow"
           ],
           "acceptance": "Record a manual review of every intended drawing family. Generated examples do not establish production suitability."
+        }
+      ]
+    },
+    {
+      "id": "FM-16",
+      "type": "process",
+      "step": "Commercialization review",
+      "failure_mode": "Readiness or IP decision cites missing or invented evidence",
+      "effects": "A release or research proposal overstates the available support.",
+      "causes": "Paths move, patent numbers are mistyped or external publication metadata changes.",
+      "requirements": [
+        "REQ-25"
+      ],
+      "prevention": "Dated reviewed publication register; explicit public-prototype TRL scope and unresolved field gates.",
+      "detection_controls": "Offline path and citation checks in CI; optional live number/title verification. Neither establishes legal status or field readiness.",
+      "scores": {
+        "severity": 5,
+        "occurrence": 3,
+        "detection": 5
+      },
+      "rationale": {
+        "severity": "An unsupported decision can waste pilot resources; this document does not authorise drawing issue.",
+        "occurrence": "Manual citation edits and source changes are plausible, with no measured rate.",
+        "detection": "Automated checks catch broken citations, but interpretation needs qualified review."
+      },
+      "actions": [
+        {
+          "id": "ACT-31",
+          "description": "Reject missing paths, unreviewed numbers and mismatched live publication identity.",
+          "owner": "Maintainer",
+          "status": "verified_automated",
+          "verification_tests": [
+            "tests/test_commercialization.py::test_assessment_citations_and_cli",
+            "tests/test_commercialization.py::test_broken_or_invented_citations_fail",
+            "tests/test_commercialization.py::test_live_metadata_requires_number_and_title",
+            "tests/test_commercialization.py::test_network_failure_is_not_a_pass"
+          ],
+          "acceptance": "Valid evidence passes; broken citations, invented numbers, mismatched metadata and network failure are rejected."
+        },
+        {
+          "id": "ACT-32",
+          "description": "Obtain supervised pilot evidence and professional IP review before broader commercial release.",
+          "owner": "Tool owner",
+          "status": "open",
+          "verification_tests": [
+            "tests/test_commercialization.py::test_assessment_citations_and_cli"
+          ],
+          "acceptance": "Record fixed-release field outcomes and legal review privately. Citation integrity is not acceptance of maturity or freedom to operate."
         }
       ]
     }
