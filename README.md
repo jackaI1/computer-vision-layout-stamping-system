@@ -1,6 +1,6 @@
 # Computer Vision Layout Stamping System
 
-A local tool for placing seal images on PDF drawing sheets and reviewing them before export.
+I built a tool for placing seal images on PDF drawings because doing it by hand was repetitive and could cover notes or linework.
 
 ## Overview
 
