@@ -417,10 +417,11 @@
           "owner": "Maintainer",
           "status": "verified_automated",
           "verification_tests": [
+            "tests/test_stamp_image.py::test_white_background_becomes_transparent_and_ink_is_kept",
             "tests/test_stamp_image.py::test_digest_identifies_the_source_bytes",
             "tests/test_ui.py::test_replacing_seal_file_invalidates_cached_bytes"
           ],
-          "acceptance": "Identical source bytes yield stable hash, changed input changes it, and replacing a seal refreshes bytes. Identity remains a human check."
+          "acceptance": "White background becomes transparent while ring ink survives. Identical source bytes yield stable hash, changed input changes it, and replacing a seal refreshes bytes. Identity remains a human check."
         },
         {
           "id": "ACT-18",
@@ -428,6 +429,7 @@
           "owner": "Seal custodian / operator",
           "status": "open",
           "verification_tests": [
+            "tests/test_stamp_image.py::test_white_background_becomes_transparent_and_ink_is_kept",
             "tests/test_stamp_image.py::test_digest_identifies_the_source_bytes",
             "tests/test_ui.py::test_replacing_seal_file_invalidates_cached_bytes"
           ],
