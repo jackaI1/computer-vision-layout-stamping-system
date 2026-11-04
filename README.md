@@ -140,7 +140,7 @@ python -m pip install -r requirements-dev.txt
 python -m pytest -q
 ```
 
-The current suite has 62 passing tests, grouped as follows:
+The current suite has 78 passing tests, grouped as follows:
 
 - [`tests/test_occupancy.py`](tests/test_occupancy.py): integral sums versus brute
   force, full-grid minima, exact tie clearance, margins, keep-out and disk scores.
@@ -152,6 +152,13 @@ The current suite has 62 passing tests, grouped as follows:
   download behaviour through Streamlit AppTest.
 - [`tests/test_runtime_compat.py`](tests/test_runtime_compat.py): media responses
   with identity and gzip encoding.
+- [`tests/test_stamp_image.py`](tests/test_stamp_image.py): seal background
+  knock-out, edge-artefact removal, trimming and content hash.
+- [`tests/test_controls.py`](tests/test_controls.py): unreadable and
+  password-protected PDFs are rejected with a reason; the `stamper` package
+  imports no network modules.
+- [`tests/test_quality_tools.py`](tests/test_quality_tools.py): the traceability
+  and IQ/OQ scripts in [`quality/`](quality/).
 
 Fixtures are generated locally. PyMuPDF may emit upstream SWIG deprecation
 warnings. Windows executable packaging is outside these tests.
@@ -166,7 +173,33 @@ examples/make_sample_sheet.py  synthetic sheets and demonstration seal
 tests/                      numerical, PDF and UI regressions
 packaging/                   Windows build scripts and installer specification
 ASSUMPTIONS.md               adjustable drawing and seal conventions
+quality/                     SOPs, change control, traceability, IQ/OQ/PQ validation
+.github/workflows/ci.yml     tests plus traceability and validation-record checks
 ```
+
+## Quality system (GMP-style documentation)
+
+[`quality/`](quality/) documents the tool as if it were regulated production
+software, using GAMP 5 and 21 CFR Part 11 ideas explained in plain words. It is
+a demonstration for an internal engineering tool: the documents are unsigned,
+not adopted by any organisation, and PQ on real drawings is defined but not
+executed. [`quality/GAMP5-PART11-NOTES.md`](quality/GAMP5-PART11-NOTES.md) lists
+what the tool does not provide (no audit trail, no log-in, no electronic signatures).
+
+```sh
+python quality/trace_matrix.py   # regenerate requirement -> code -> test matrix
+python quality/oq_report.py      # run IQ checks and the full suite, write the OQ record
+```
+
+## Skills demonstrated
+
+| Skill | What it does in this project | Where |
+| --- | --- | --- |
+| GMP-style SOP writing | Controlled procedure for applying seals: scope, roles, steps, acceptance checks, deviations, record templates | [`quality/SOP-001-stamp-placement.md`](quality/SOP-001-stamp-placement.md) |
+| Change control | Change classes, impact assessment, revalidation rules and a change log | [`quality/SOP-002-change-control.md`](quality/SOP-002-change-control.md), [`quality/CHANGE_LOG.md`](quality/CHANGE_LOG.md) |
+| Requirements traceability | 19 requirements linked to code and tests; a script regenerates the matrix from test names and CI fails on gaps | [`quality/requirements.json`](quality/requirements.json), [`quality/trace_matrix.py`](quality/trace_matrix.py), [`quality/TRACEABILITY_MATRIX.md`](quality/TRACEABILITY_MATRIX.md) |
+| IQ/OQ/PQ validation | Protocol plus an executed IQ/OQ record generated from the real test run, tied to the tested files by SHA-256 | [`quality/validation/`](quality/validation/), [`quality/oq_report.py`](quality/oq_report.py) |
+| Continuous integration | Runs the suite and both quality checks on every pull request | [`.github/workflows/ci.yml`](.github/workflows/ci.yml) |
 
 ## Limitations and known issues
 
