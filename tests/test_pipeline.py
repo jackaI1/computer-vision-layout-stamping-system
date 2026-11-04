@@ -265,3 +265,34 @@ def test_sanitize_keeps_a_newly_detected_box_exempt_from_keepout():
         assert relocated == [0]
         assert fixed[0].source == 'engineer_box'
         assert fixed[0].center_x_pt == pytest.approx(2273.5)
+
+
+def test_faint_linework_can_be_present_when_reported_coverage_is_zero(seal):
+    # FM-01: zero means no pixels below the configured threshold, not no content.
+    from stamper.occupancy import disk_coverage
+
+    with fitz.open() as doc:
+        page = doc.new_page(width=300, height=300)
+        page.draw_line((60, 150), (240, 150), color=(.85, .85, .85), width=2)
+        occ = analyze_page(page, Settings())
+        assert not occ.ink.any()
+        assert disk_coverage(occ, 150, 150, 100) == 0
+        p = Placement(0, 150, 150, 100, 'manual', 0, 300, 300)
+        data = render_stamped_pdf(doc.tobytes(), [p], seal, '', Settings(bottom_text=''))
+    with fitz.open(stream=data, filetype='pdf') as out:
+        line = out[0].get_drawings()[0]['rect']
+        assert line.x0 < p.rect().x0 < p.rect().x1 < line.x1
+        assert p.rect().y0 < line.y0 < p.rect().y1
+        assert len(out[0].get_image_info()) == 1
+
+
+def test_caption_extends_beyond_the_scored_seal_footprint(seal):
+    # FM-08: caption clearance requires output review; the disk score excludes it.
+    with fitz.open() as doc:
+        doc.new_page(width=300, height=300)
+        p = Placement(0, 150, 150, 100, 'manual', 0, 300, 300)
+        data = render_stamped_pdf(doc.tobytes(), [p], seal, '', Settings(bottom_text='SYNTHETIC CAPTION'))
+    with fitz.open(stream=data, filetype='pdf') as out:
+        caption = out[0].search_for('SYNTHETIC CAPTION')[0]
+        assert caption.y1 > p.rect().y1
+        assert out[0].rect.contains(caption)

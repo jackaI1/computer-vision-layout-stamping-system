@@ -11,7 +11,8 @@
       "tests": [
         "tests/test_occupancy.py::test_integral_image_*",
         "tests/test_occupancy.py::test_window_sums_*",
-        "tests/test_occupancy.py::test_scale_is_honoured_*"
+        "tests/test_occupancy.py::test_scale_is_honoured_*",
+        "tests/test_pipeline.py::test_faint_linework_can_be_present_when_reported_coverage_is_zero"
       ]
     },
     {
@@ -47,7 +48,8 @@
       "risk": "High",
       "code": ["stamper/occupancy.py::disk_coverage"],
       "tests": [
-        "tests/test_occupancy.py::test_disk_coverage_*"
+        "tests/test_occupancy.py::test_disk_coverage_*",
+        "tests/test_pipeline.py::test_faint_linework_can_be_present_when_reported_coverage_is_zero"
       ]
     },
     {
@@ -160,7 +162,8 @@
         "tests/test_pipeline.py::test_date_font_colour_and_caption_reach_pdf",
         "tests/test_pipeline.py::test_small_seal_date_is_not_silently_dropped",
         "tests/test_ui.py::test_sidebar_exposes_date_colour_*",
-        "tests/test_ui.py::test_sidebar_padding_floor_and_caption_setting"
+        "tests/test_ui.py::test_sidebar_padding_floor_and_caption_setting",
+        "tests/test_pipeline.py::test_caption_extends_beyond_the_scored_seal_footprint"
       ]
     },
     {
@@ -225,6 +228,21 @@
       "code": ["quality/trace_matrix.py::build", "quality/trace_matrix.py::render", "quality/oq_report.py::fingerprint", "quality/oq_report.py::parse_junit"],
       "tests": [
         "tests/test_quality_tools.py::*"
+      ]
+    },
+    {
+      "id": "REQ-20",
+      "title": "FMEA integrity and risk traceability",
+      "text": "The design/process FMEA shall score each mode with integer severity, occurrence and detection from 1 to 10, compute RPN, retain score rationale and owned actions, link exact verification tests to its requirements, and detect invalid or stale evidence without implying production approval.",
+      "risk": "High",
+      "code": [
+        "quality/fmea_report.py::validate",
+        "quality/fmea_report.py::priority",
+        "quality/fmea_report.py::render",
+        "quality/fmea_report.py::main"
+      ],
+      "tests": [
+        "tests/test_fmea.py::*"
       ]
     }
   ]

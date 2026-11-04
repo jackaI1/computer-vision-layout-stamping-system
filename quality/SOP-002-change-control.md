@@ -17,7 +17,7 @@ recorded before it is used on issued drawings, so the tool stays in a validated 
 
 Changes to: `stamper/`, `app.py`, `desktop_app.py`, default settings in `stamper/config.py`,
 dependency pins (`requirements*.txt`), the tests, `quality/requirements.json`, and the
-seal conventions in `ASSUMPTIONS.md`. Documentation-only changes follow section 8.
+seal conventions in `ASSUMPTIONS.md`. The FMEA source, method, generated register and quality scripts are also controlled and fingerprinted. Documentation-only changes outside the validated file set follow section 8.
 
 ## 3. Responsibilities
 
@@ -44,20 +44,21 @@ When unsure, treat the change as Major.
 1. **Request.** Open a GitHub issue or write the request with a number `CR-nnn`: what, why, urgency.
 2. **Impact assessment.** List the requirements affected (use [`requirements.json`](requirements.json) and the
    [traceability matrix](TRACEABILITY_MATRIX.md) to find code and tests), the risk (High/Medium/Low as listed),
-   and the class from section 4. If placement output can change, note that `PLACEMENT_LOGIC_VERSION` in
+   and the class from section 4. Review the affected failure modes and open actions in [the FMEA](FMEA_REGISTER.md); reassess ratings when controls or intended inputs change. If placement output can change, note that `PLACEMENT_LOGIC_VERSION` in
    `stamper/placement.py` must be increased so cached placements are not reused.
 3. **Approval to proceed.** The Approver agrees the class and plan (a comment on the issue is enough).
 4. **Implement** on a new branch, never directly on `main`.
 5. **Test.** Add or update tests for every affected requirement. New tests must be linked to a requirement
    in `requirements.json`; a new requirement needs at least one test.
 6. **Regenerate the records:**
+   - `python quality/fmea_report.py` validates scoring and action evidence and rewrites the FMEA register;
    - `python quality/trace_matrix.py` rewrites the traceability matrix;
    - `python quality/oq_report.py` runs the installation checks and the full test suite and rewrites
      [`validation/IQ-OQ-EXECUTED.md`](validation/IQ-OQ-EXECUTED.md).
 7. **Review.** Open a pull request. The description states the CR number, class, requirements affected, and
    the OQ result. The Reviewer checks the diff, the new tests and the regenerated records.
 8. **Automatic gate (CI).** The pull request must pass: the full test suite, `trace_matrix.py --check`
-   (no requirement without a test, no orphan test, matrix current) and `oq_report.py --check` (record matches
+   (no requirement without a test, no orphan test, matrix current), `fmea_report.py --check` (scores, owned actions, exact related test evidence and register current), and `oq_report.py --check` (record matches
    the files). A change to a validated file without re-executing the record fails CI.
 9. **Release approval.** For Major changes, run PQ (VP-001 section 8) and attach the result. The Approver approves.
 10. **Merge and log.** Merge the pull request (squash). Add the entry to [`CHANGE_LOG.md`](CHANGE_LOG.md) with the
@@ -78,7 +79,7 @@ and fails on any mismatch.
 ## 8. Documentation-only changes
 
 Edit on a branch, open a pull request, merge, and add a one-line change-log entry. The IQ/OQ record is
-unaffected because documentation is not in the validated file set.
+unaffected only for documents outside the validated file set. FMEA method/register changes require regeneration and re-execution under section 5.
 
 ## 9. Records
 
