@@ -1,0 +1,676 @@
+{
+  "document": "QMS-FMEA-001",
+  "revision": 1,
+  "failure_modes": [
+    {
+      "id": "FM-01",
+      "type": "design",
+      "step": "Analyze / search",
+      "failure_mode": "Seal hides faint or crowded drawing content",
+      "effects": "A dimension, revision or line can become unreadable in an issued drawing.",
+      "causes": "Thresholding ignores faint ink; square grid search is approximate and crowded pages may have no blank disk.",
+      "requirements": [
+        "REQ-01",
+        "REQ-02",
+        "REQ-03",
+        "REQ-04"
+      ],
+      "prevention": "Integral-image search evaluates eligible grid positions; ink minimization takes precedence over clearance.",
+      "detection_controls": "Disk coverage orders review, but neither zero coverage nor the square score proves semantic clearance (SOP-001 A4).",
+      "scores": {
+        "severity": 8,
+        "occurrence": 5,
+        "detection": 7
+      },
+      "rationale": {
+        "severity": "Hidden technical content requires withholding the affected output.",
+        "occurrence": "Faint and crowded sheets are plausible inputs; no representative production frequency is measured.",
+        "detection": "Synthetic numerical tests detect algorithm regressions, but faint content can escape the metric; human output review is required."
+      },
+      "actions": [
+        {
+          "id": "ACT-01",
+          "description": "Retain grid-reference tests and explicitly demonstrate the faint-ink blind spot.",
+          "owner": "Maintainer",
+          "status": "verified_automated",
+          "verification_tests": [
+            "tests/test_occupancy.py::test_full_grid_search_matches_bruteforce_global_square_minimum",
+            "tests/test_pipeline.py::test_faint_linework_can_be_present_when_reported_coverage_is_zero"
+          ],
+          "acceptance": "Grid minimum matches brute force; a real faint vector crossing the disk can still report zero coverage. This characterizes a limit, not its elimination."
+        },
+        {
+          "id": "ACT-02",
+          "description": "Perform enlarged output review on faint, scanned and crowded sheets; evaluate adaptive thresholding only through a separate change request.",
+          "owner": "Operator / tool owner",
+          "status": "open",
+          "verification_tests": [
+            "tests/test_occupancy.py::test_full_grid_search_matches_bruteforce_global_square_minimum",
+            "tests/test_pipeline.py::test_faint_linework_can_be_present_when_reported_coverage_is_zero"
+          ],
+          "acceptance": "Record SOP-001 A4 on every output page and representative PQ examples. Open: no real-drawing PQ or automated semantic-clearance control is supplied."
+        }
+      ]
+    },
+    {
+      "id": "FM-02",
+      "type": "design",
+      "step": "Fit / keep-out",
+      "failure_mode": "Automatic seal clips off page or enters reserved corner",
+      "effects": "Seal is incomplete or covers a revision/title-block region.",
+      "causes": "Small sheets, fractional coordinates or keep-out settings leave no legal position.",
+      "requirements": [
+        "REQ-05",
+        "REQ-06"
+      ],
+      "prevention": "Margins and keep-out reject invalid candidates; small-page fallback shrinks to fit or raises an explicit error.",
+      "detection_controls": "Boundary tests and fully reserved-page refusal; SOP-001 A3 checks final geometry.",
+      "scores": {
+        "severity": 8,
+        "occurrence": 3,
+        "detection": 4
+      },
+      "rationale": {
+        "severity": "An incomplete or misplaced seal invalidates the intended output.",
+        "occurrence": "Edge cases are known but confined to constrained geometry; frequency is estimated.",
+        "detection": "Deterministic geometry tests cover defined boundaries; actual drawing conventions still need visual checks."
+      },
+      "actions": [
+        {
+          "id": "ACT-03",
+          "description": "Keep fail-explicit and small-page geometry regression coverage.",
+          "owner": "Maintainer",
+          "status": "verified_automated",
+          "verification_tests": [
+            "tests/test_pipeline.py::test_fully_reserved_page_refuses_automatic_placement",
+            "tests/test_pipeline.py::test_tiny_page_fallback_stays_outside_reserved_corner"
+          ],
+          "acceptance": "Fully reserved page raises; small-page seal stays inside page and outside keep-out."
+        },
+        {
+          "id": "ACT-04",
+          "description": "Check legibility after any automatic shrink and confirm project keep-out dimensions before issue.",
+          "owner": "Operator",
+          "status": "open",
+          "verification_tests": [
+            "tests/test_pipeline.py::test_fully_reserved_page_refuses_automatic_placement",
+            "tests/test_pipeline.py::test_tiny_page_fallback_stays_outside_reserved_corner"
+          ],
+          "acceptance": "SOP-001 A3 confirms readable size and intended reserved area on every changed sheet size; no universal minimum legibility is inferred from fit tests."
+        }
+      ]
+    },
+    {
+      "id": "FM-03",
+      "type": "design",
+      "step": "Detect title-block cell",
+      "failure_mode": "Wrong or unrecognized designated cell is selected",
+      "effects": "Seal may occupy a plausible but unintended title-block region.",
+      "causes": "Label matching assumes extractable text and common spellings; scans and unusual ruling lines can defeat cell derivation.",
+      "requirements": [
+        "REQ-07"
+      ],
+      "prevention": "Text-label search and line-derived cell bounds; fitting cell required, otherwise whitespace fallback.",
+      "detection_controls": "Synthetic common-label and cell-fit tests plus operator inspection of the intended cell.",
+      "scores": {
+        "severity": 8,
+        "occurrence": 4,
+        "detection": 6
+      },
+      "rationale": {
+        "severity": "Wrong title-block placement can obscure information or breach intended layout.",
+        "occurrence": "Unfamiliar/scanned layouts are plausible; the fixture set is not a frequency sample.",
+        "detection": "Tests cover known labels only; a false-positive cell can look credible and requires layout review."
+      },
+      "actions": [
+        {
+          "id": "ACT-05",
+          "description": "Maintain fitting-cell and label variants as regression evidence.",
+          "owner": "Maintainer",
+          "status": "verified_automated",
+          "verification_tests": [
+            "tests/test_pipeline.py::test_cover_detects_and_fits_designated_cell_despite_keepout",
+            "tests/test_pipeline.py::test_detects_common_stamp_box_labels"
+          ],
+          "acceptance": "Synthetic designated cell is centered and fitted even when it overrides automatic keep-out; supported label variants are recognized."
+        },
+        {
+          "id": "ACT-06",
+          "description": "Qualify each new title-block family, including scans and multiple engineer labels, before relying on automatic cell detection.",
+          "owner": "Tool owner / operator",
+          "status": "open",
+          "verification_tests": [
+            "tests/test_pipeline.py::test_cover_detects_and_fits_designated_cell_despite_keepout",
+            "tests/test_pipeline.py::test_detects_common_stamp_box_labels"
+          ],
+          "acceptance": "Attach representative PQ results showing the intended cell or an explicitly reviewed manual placement; unfamiliar layouts remain unqualified."
+        }
+      ]
+    },
+    {
+      "id": "FM-04",
+      "type": "design",
+      "step": "Write transformed overlay",
+      "failure_mode": "Export differs from reviewed coordinates on rotated or offset pages",
+      "effects": "Seal/date could be shifted over technical content or off sheet despite a plausible preview.",
+      "causes": "Mixing displayed, rotated and MediaBox-origin coordinate systems.",
+      "requirements": [
+        "REQ-12"
+      ],
+      "prevention": "Separate derotation handling for image and text insertion; explicit origin corrections.",
+      "detection_controls": "Rendered PDF geometry regressions for four right-angle rotations and nonzero origins; downloaded PDF is reference.",
+      "scores": {
+        "severity": 8,
+        "occurrence": 3,
+        "detection": 5
+      },
+      "rationale": {
+        "severity": "Shifted overlay can hide technical content.",
+        "occurrence": "Rotation/origin variants occur but are bounded cases covered by tests; estimate only.",
+        "detection": "Tests measure actual exported geometry; preview alone would miss insertion-only errors."
+      },
+      "actions": [
+        {
+          "id": "ACT-07",
+          "description": "Retain exported-image and text geometry checks across supported rotations.",
+          "owner": "Maintainer",
+          "status": "verified_automated",
+          "verification_tests": [
+            "tests/test_pipeline.py::test_pdf_overlay_preserves_content_and_upright_geometry",
+            "tests/test_pipeline.py::test_nonzero_page_origin_keeps_overlay_at_display_position"
+          ],
+          "acceptance": "Exported overlay bounds match displayed placement for 0/90/180/270 degrees and offset origins."
+        },
+        {
+          "id": "ACT-08",
+          "description": "Inspect downloaded PDFs for each incoming rotation/crop convention, especially beyond the synthetic fixtures.",
+          "owner": "Independent checker",
+          "status": "open",
+          "verification_tests": [
+            "tests/test_pipeline.py::test_pdf_overlay_preserves_content_and_upright_geometry",
+            "tests/test_pipeline.py::test_nonzero_page_origin_keeps_overlay_at_display_position"
+          ],
+          "acceptance": "SOP-001 A3/A4 recorded on final files; untested crop conventions require a new fixture and PQ review."
+        }
+      ]
+    },
+    {
+      "id": "FM-05",
+      "type": "design",
+      "step": "Cache / manual override",
+      "failure_mode": "Stale automatic location or manual override reaches export",
+      "effects": "Changed settings can leave an automatic seal in a forbidden corner; an intentional manual move can cover content.",
+      "causes": "Session/cache reuse or an operator overrides keep-out; manual placements are deliberately not relocated.",
+      "requirements": [
+        "REQ-09",
+        "REQ-10",
+        "REQ-15"
+      ],
+      "prevention": "Placement/render cache keys and download-time sanitization; manual decisions preserved with UI warning.",
+      "detection_controls": "Live download tests confirm stale relocation and preservation of manual edits; review still required for overrides.",
+      "scores": {
+        "severity": 8,
+        "occurrence": 4,
+        "detection": 6
+      },
+      "rationale": {
+        "severity": "Stale or manual position can obscure critical content.",
+        "occurrence": "Settings changes and manual adjustments are routine opportunities, not measured incident rates.",
+        "detection": "Automatic stale-corner checks are tested; manual content overlap is not prevented."
+      },
+      "actions": [
+        {
+          "id": "ACT-09",
+          "description": "Retain end-to-end downloaded-byte tests for late stale state and explicit manual edits.",
+          "owner": "Maintainer",
+          "status": "verified_automated",
+          "verification_tests": [
+            "tests/test_ui.py::test_download_sanitizes_late_stale_automatic_placement",
+            "tests/test_ui.py::test_manual_edits_and_removal_reach_live_download"
+          ],
+          "acceptance": "Late automatic placement is sanitized and downloaded bytes reflect deliberate edits/removals."
+        },
+        {
+          "id": "ACT-10",
+          "description": "Record each manual override and independently verify final clearance after bulk apply or settings changes.",
+          "owner": "Operator / independent checker",
+          "status": "open",
+          "verification_tests": [
+            "tests/test_ui.py::test_download_sanitizes_late_stale_automatic_placement",
+            "tests/test_ui.py::test_manual_edits_and_removal_reach_live_download"
+          ],
+          "acceptance": "SOP-001 stamping record lists manual changes and A3/A4 results. Automatic tests do not authorize manual keep-out overlap."
+        }
+      ]
+    },
+    {
+      "id": "FM-06",
+      "type": "process",
+      "step": "Review page set / download",
+      "failure_mode": "A required page is missed or an excluded page is stamped",
+      "effects": "Incomplete or incorrectly stamped drawing set is handed over.",
+      "causes": "Riskiest-first ordering differs from page order; remove/restore decisions or bulk downloads are misunderstood.",
+      "requirements": [
+        "REQ-08",
+        "REQ-10"
+      ],
+      "prevention": "Per-page placements retain indices; removal is explicit; downloads preserve source page count.",
+      "detection_controls": "Ten-sheet export and removal tests; SOP-001 A1/A2 compares source and issued set.",
+      "scores": {
+        "severity": 8,
+        "occurrence": 4,
+        "detection": 5
+      },
+      "rationale": {
+        "severity": "Wrong scope of stamping requires stopping issue and regenerating affected files.",
+        "occurrence": "Multi-page and manual removal workflows create plausible human error opportunities.",
+        "detection": "Tests detect indexing/export regressions; software cannot infer which pages ought to be sealed."
+      },
+      "actions": [
+        {
+          "id": "ACT-11",
+          "description": "Keep multi-page export and manual removal regression checks.",
+          "owner": "Maintainer",
+          "status": "verified_automated",
+          "verification_tests": [
+            "tests/test_pipeline.py::test_ten_sheet_set_is_stamped_on_every_page",
+            "tests/test_ui.py::test_manual_edits_and_removal_reach_live_download"
+          ],
+          "acceptance": "Synthetic ten-sheet set retains every page and expected seal; explicit removals reach downloaded PDF."
+        },
+        {
+          "id": "ACT-12",
+          "description": "Reconcile page count, sheet identifiers and expected seal presence against the authorized source set.",
+          "owner": "Independent checker",
+          "status": "open",
+          "verification_tests": [
+            "tests/test_pipeline.py::test_ten_sheet_set_is_stamped_on_every_page",
+            "tests/test_ui.py::test_manual_edits_and_removal_reach_live_download"
+          ],
+          "acceptance": "Record A1/A2 for each file, including intended omissions, before issue. No automatic engineering-scope determination exists."
+        }
+      ]
+    },
+    {
+      "id": "FM-07",
+      "type": "design",
+      "step": "Export PDF",
+      "failure_mode": "Original content is degraded or unintentionally flattened",
+      "effects": "Selectable text, vector fidelity or embedded raster data can be lost.",
+      "causes": "Wrong output option or a PDF writer regression rewrites original streams.",
+      "requirements": [
+        "REQ-11"
+      ],
+      "prevention": "Default overlay path retains original streams; raster flattening is an explicit choice.",
+      "detection_controls": "Content-stream/raster preservation and optional-flatten tests; compare downloaded output to original.",
+      "scores": {
+        "severity": 8,
+        "occurrence": 3,
+        "detection": 4
+      },
+      "rationale": {
+        "severity": "Loss of original drawing fidelity can affect interpretation.",
+        "occurrence": "Overlay is default and tested; accidental flatten selection remains plausible.",
+        "detection": "Tests compare streams and raster bytes; output review must confirm the chosen export mode."
+      },
+      "actions": [
+        {
+          "id": "ACT-13",
+          "description": "Retain original-content and optional-flatten regressions.",
+          "owner": "Maintainer",
+          "status": "verified_automated",
+          "verification_tests": [
+            "tests/test_pipeline.py::test_original_raster_image_bytes_are_preserved",
+            "tests/test_pipeline.py::test_removal_leaves_page_unstamped_and_flatten_is_optional"
+          ],
+          "acceptance": "Original raster bytes remain exact in overlay mode; flattening is exercised only when requested."
+        },
+        {
+          "id": "ACT-14",
+          "description": "Confirm the required export mode and retain unchanged source files/checksums.",
+          "owner": "Operator",
+          "status": "open",
+          "verification_tests": [
+            "tests/test_pipeline.py::test_original_raster_image_bytes_are_preserved",
+            "tests/test_pipeline.py::test_removal_leaves_page_unstamped_and_flatten_is_optional"
+          ],
+          "acceptance": "SOP-001 A6 plus release record states whether flattening was explicitly required; real drawing fidelity remains a PQ check."
+        }
+      ]
+    },
+    {
+      "id": "FM-08",
+      "type": "process",
+      "step": "Set date / caption",
+      "failure_mode": "Wrong date or caption obscures content outside scored footprint",
+      "effects": "Output misstates intended date/scope or a caption collides with drawing content despite zero disk coverage.",
+      "causes": "Default date is accepted without checking; caption below the circle is excluded from collision scoring.",
+      "requirements": [
+        "REQ-13"
+      ],
+      "prevention": "Editable date/caption, selectable text insertion and small-seal date font sizing; caption can be cleared.",
+      "detection_controls": "Exported-text and caption-boundary tests; SOP-001 A5 requires checking actual output.",
+      "scores": {
+        "severity": 8,
+        "occurrence": 5,
+        "detection": 7
+      },
+      "rationale": {
+        "severity": "Misleading date/scope or obscured technical content requires withholding output.",
+        "occurrence": "Default values and tight cells are plausible recurring workflow conditions; no measured rate.",
+        "detection": "String tests prove selected values render, not that they are authorized; disk coverage does not detect caption collisions."
+      },
+      "actions": [
+        {
+          "id": "ACT-15",
+          "description": "Document the caption footprint limit with exported-PDF geometry and retain date/text checks.",
+          "owner": "Maintainer",
+          "status": "verified_automated",
+          "verification_tests": [
+            "tests/test_pipeline.py::test_caption_extends_beyond_the_scored_seal_footprint",
+            "tests/test_pipeline.py::test_date_font_colour_and_caption_reach_pdf",
+            "tests/test_pipeline.py::test_small_seal_date_is_not_silently_dropped"
+          ],
+          "acceptance": "Chosen date/caption render; small date is not dropped; caption bounds demonstrate extension beyond scored disk."
+        },
+        {
+          "id": "ACT-16",
+          "description": "Confirm authorized date/caption and inspect space below the seal; move, shorten or clear caption if needed. Consider expanded collision bounds in a separate change.",
+          "owner": "Operator / tool owner",
+          "status": "open",
+          "verification_tests": [
+            "tests/test_pipeline.py::test_caption_extends_beyond_the_scored_seal_footprint",
+            "tests/test_pipeline.py::test_date_font_colour_and_caption_reach_pdf",
+            "tests/test_pipeline.py::test_small_seal_date_is_not_silently_dropped"
+          ],
+          "acceptance": "Record A4/A5 on downloaded output. Caption-aware automatic clearance and project authorization are not implemented by these tests."
+        }
+      ]
+    },
+    {
+      "id": "FM-09",
+      "type": "process",
+      "step": "Load seal",
+      "failure_mode": "Wrong or damaged seal image is used",
+      "effects": "Output carries the wrong identity or an unreadable/incomplete seal.",
+      "causes": "Operator selects wrong asset; white-background/crop processing damages image; replacing a file reuses stale bytes.",
+      "requirements": [
+        "REQ-14",
+        "REQ-15"
+      ],
+      "prevention": "Content hash, transparent-background preparation and seal cache invalidation.",
+      "detection_controls": "Image-processing and file-replacement regressions plus operator thumbnail/output identity check.",
+      "scores": {
+        "severity": 9,
+        "occurrence": 3,
+        "detection": 7
+      },
+      "rationale": {
+        "severity": "Wrong seal identity is an authorization-critical error even if placement is correct.",
+        "occurrence": "Manual selection and asset replacement are plausible but unmeasured opportunities.",
+        "detection": "Tests verify pixels/cache identity only; there is no automated identity or authorization verification."
+      },
+      "actions": [
+        {
+          "id": "ACT-17",
+          "description": "Keep transparent-image and content-hash/cache replacement tests.",
+          "owner": "Maintainer",
+          "status": "verified_automated",
+          "verification_tests": [
+            "tests/test_stamp_image.py::test_digest_identifies_the_source_bytes",
+            "tests/test_ui.py::test_replacing_seal_file_invalidates_cached_bytes"
+          ],
+          "acceptance": "Identical source bytes yield stable hash, changed input changes it, and replacing a seal refreshes bytes. Identity remains a human check."
+        },
+        {
+          "id": "ACT-18",
+          "description": "Confirm the current authorized seal with its custodian and inspect preparation for clipping before any issue.",
+          "owner": "Seal custodian / operator",
+          "status": "open",
+          "verification_tests": [
+            "tests/test_stamp_image.py::test_digest_identifies_the_source_bytes",
+            "tests/test_ui.py::test_replacing_seal_file_invalidates_cached_bytes"
+          ],
+          "acceptance": "SOP-001 prerequisites 2/3 and thumbnail/output checks recorded privately; no real seal, signature or authorization record is published."
+        }
+      ]
+    },
+    {
+      "id": "FM-10",
+      "type": "design",
+      "step": "Validate / analyze inputs",
+      "failure_mode": "Skipped or failed input is mistaken for a completed zero-coverage page",
+      "effects": "Missing/unprocessed drawing is omitted from the issued set or incorrectly considered safe.",
+      "causes": "Unreadable/password-protected input or raster-analysis failure is ignored.",
+      "requirements": [
+        "REQ-16"
+      ],
+      "prevention": "Input validation states a skip reason; analysis failure raises with page number rather than guessed zero coverage.",
+      "detection_controls": "Bad-input and injected analysis-failure tests; operator reconciles uploaded versus exported files.",
+      "scores": {
+        "severity": 8,
+        "occurrence": 3,
+        "detection": 3
+      },
+      "rationale": {
+        "severity": "Omitted processing can lead to an incomplete drawing set.",
+        "occurrence": "Unsupported or damaged PDFs are occasional plausible inputs, not measured frequency.",
+        "detection": "Explicit errors make detection strong when attended; operator can still ignore a skipped file."
+      },
+      "actions": [
+        {
+          "id": "ACT-19",
+          "description": "Retain rejected-input reasons and fail-explicit analysis checks.",
+          "owner": "Maintainer",
+          "status": "verified_automated",
+          "verification_tests": [
+            "tests/test_controls.py::test_non_pdf_bytes_are_rejected_with_a_reason",
+            "tests/test_controls.py::test_password_protected_pdf_is_rejected_with_a_reason",
+            "tests/test_pipeline.py::test_analysis_failure_is_reported_instead_of_zero_coverage"
+          ],
+          "acceptance": "Bad/encrypted input is rejected with a reason and an analysis failure identifies the page."
+        },
+        {
+          "id": "ACT-20",
+          "description": "Resolve every skip/error and reconcile the source file list before handing over output.",
+          "owner": "Operator",
+          "status": "open",
+          "verification_tests": [
+            "tests/test_controls.py::test_non_pdf_bytes_are_rejected_with_a_reason",
+            "tests/test_controls.py::test_password_protected_pdf_is_rejected_with_a_reason",
+            "tests/test_pipeline.py::test_analysis_failure_is_reported_instead_of_zero_coverage"
+          ],
+          "acceptance": "Each expected source has an output or documented intentional exclusion; unresolved processing error blocks issue under SOP-001 section 8."
+        }
+      ]
+    },
+    {
+      "id": "FM-11",
+      "type": "process",
+      "step": "Authorize / issue",
+      "failure_mode": "Applying an image is mistaken for engineering approval",
+      "effects": "A drawing may be issued without the responsible engineer authorizing the seal or reviewing the design.",
+      "causes": "Automation is treated as approval; tool has no login, signature verification or approval audit trail.",
+      "requirements": [
+        "REQ-10",
+        "REQ-13"
+      ],
+      "prevention": "SOP-001 requires written authorization and engineer-of-record sign-off; tool permits correction/removal but does not enforce approval.",
+      "detection_controls": "Independent procedural authorization check; UI/export tests only establish editing fidelity.",
+      "scores": {
+        "severity": 9,
+        "occurrence": 3,
+        "detection": 8
+      },
+      "rationale": {
+        "severity": "Unauthorized issue is a serious process failure regardless of geometrically correct placement.",
+        "occurrence": "There is a credible misuse path; no field incident frequency or permission model is claimed.",
+        "detection": "Software cannot detect lack of authority; detection depends on external review and records."
+      },
+      "actions": [
+        {
+          "id": "ACT-21",
+          "description": "Retain tested ability to remove/move seals and choose output text; do not label it approval enforcement.",
+          "owner": "Maintainer",
+          "status": "verified_automated",
+          "verification_tests": [
+            "tests/test_ui.py::test_manual_edits_and_removal_reach_live_download",
+            "tests/test_pipeline.py::test_date_font_colour_and_caption_reach_pdf"
+          ],
+          "acceptance": "Output follows operator decisions and text settings only. Tests do not verify professional authority or authorize any issue."
+        },
+        {
+          "id": "ACT-22",
+          "description": "Require written engineer authorization, independent final checking and controlled issue records outside this tool.",
+          "owner": "Engineer of record / independent checker",
+          "status": "open",
+          "verification_tests": [
+            "tests/test_ui.py::test_manual_edits_and_removal_reach_live_download",
+            "tests/test_pipeline.py::test_date_font_colour_and_caption_reach_pdf"
+          ],
+          "acceptance": "SOP-001 prerequisites and handover records complete; this public demonstration has no production approval, real-drawing PQ or electronic-signature claim."
+        }
+      ]
+    },
+    {
+      "id": "FM-12",
+      "type": "process",
+      "step": "Handle files / publish changes",
+      "failure_mode": "Confidential drawings or real seals leave the intended local workflow",
+      "effects": "Private project content or seal identity could be exposed.",
+      "causes": "A future network dependency or accidental commit bypasses local-processing/public-fixture conventions.",
+      "requirements": [
+        "REQ-17"
+      ],
+      "prevention": "Local stamper pipeline and ignored private asset directories; only generated fixtures belong in the public repository.",
+      "detection_controls": "Static no-network-import test for stamper plus human staged-diff inspection; not a whole-system security audit.",
+      "scores": {
+        "severity": 9,
+        "occurrence": 3,
+        "detection": 7
+      },
+      "rationale": {
+        "severity": "Exposure of seal/client data is an authorization-critical failure.",
+        "occurrence": "Accidental publishing is possible; no organization-specific incident data is available.",
+        "detection": "Import checks cover only stamper, not arbitrary file copies, browser behavior or transitive network activity."
+      },
+      "actions": [
+        {
+          "id": "ACT-23",
+          "description": "Retain the package network-import boundary test.",
+          "owner": "Maintainer",
+          "status": "verified_automated",
+          "verification_tests": [
+            "tests/test_controls.py::test_stamper_package_imports_no_network_modules"
+          ],
+          "acceptance": "stamper has no imports from the tested network-module set. This does not prove system-wide data isolation."
+        },
+        {
+          "id": "ACT-24",
+          "description": "Review staged changes and generated artifacts before publication; keep real drawings and seals in controlled local storage.",
+          "owner": "Maintainer / seal custodian",
+          "status": "open",
+          "verification_tests": [
+            "tests/test_controls.py::test_stamper_package_imports_no_network_modules"
+          ],
+          "acceptance": "Public commits contain generated fixtures and source only; private asset/data review recorded locally, without adding those records to Git."
+        }
+      ]
+    },
+    {
+      "id": "FM-13",
+      "type": "design",
+      "step": "Serve review preview",
+      "failure_mode": "Dependency incompatibility prevents reliable visual review",
+      "effects": "Operator cannot reliably inspect previews and could proceed with incomplete review.",
+      "causes": "Media response headers/gzip behavior change across UI dependency versions.",
+      "requirements": [
+        "REQ-18"
+      ],
+      "prevention": "Pinned direct/transitive dependencies with verified media compatibility.",
+      "detection_controls": "Identity/gzip HTTP response tests and operator preview check.",
+      "scores": {
+        "severity": 6,
+        "occurrence": 3,
+        "detection": 3
+      },
+      "rationale": {
+        "severity": "Review interruption is visible and recoverable before issue when SOP is followed.",
+        "occurrence": "Pinned versions limit drift; compatibility regression remains plausible.",
+        "detection": "Response tests exercise both encodings and a missing preview is generally visible."
+      },
+      "actions": [
+        {
+          "id": "ACT-25",
+          "description": "Keep preview response tests on the pinned runtime.",
+          "owner": "Maintainer",
+          "status": "verified_automated",
+          "verification_tests": [
+            "tests/test_runtime_compat.py::test_preview_media_responses_include_http_headers"
+          ],
+          "acceptance": "Media responses provide correct HTTP headers under identity and gzip encoding."
+        },
+        {
+          "id": "ACT-26",
+          "description": "Stop issue when preview cannot be inspected; qualify the packaged Windows runtime separately before deployment.",
+          "owner": "Tool owner / operator",
+          "status": "open",
+          "verification_tests": [
+            "tests/test_runtime_compat.py::test_preview_media_responses_include_http_headers"
+          ],
+          "acceptance": "Correct runtime installed and every page inspected; Windows packaging/browser coverage is not claimed by source-environment tests."
+        }
+      ]
+    },
+    {
+      "id": "FM-14",
+      "type": "process",
+      "step": "Change / revalidate",
+      "failure_mode": "FMEA actions or validation evidence silently become stale",
+      "effects": "A change ships with unsupported mitigations, invalid scoring or obsolete test links.",
+      "causes": "Requirement/test renaming, missing actions or edited source leaves quality records disconnected.",
+      "requirements": [
+        "REQ-19",
+        "REQ-20"
+      ],
+      "prevention": "Versioned JSON register, generated reports, exact requirement/test linking, fingerprint and PR CI gates.",
+      "detection_controls": "Validator corruption/staleness tests, traceability check and IQ/OQ fingerprint check.",
+      "scores": {
+        "severity": 7,
+        "occurrence": 4,
+        "detection": 3
+      },
+      "rationale": {
+        "severity": "False confidence in evidence can conceal regressions; application output still has a separate inspection step.",
+        "occurrence": "Changes routinely alter tests/requirements; frequency of an actual escape is unknown.",
+        "detection": "CI detects defined integrity errors; neither report generation nor tests prove adequacy of engineering judgment."
+      },
+      "actions": [
+        {
+          "id": "ACT-27",
+          "description": "Validate scores, ownership/status, exact related test IDs, high-severity review priority and generated-report freshness in CI.",
+          "owner": "Maintainer",
+          "status": "verified_automated",
+          "verification_tests": [
+            "tests/test_fmea.py::test_fmea_rejects_test_evidence_unrelated_to_linked_requirements",
+            "tests/test_fmea.py::test_fmea_cli_detects_drift_and_invalid_input_without_overwriting",
+            "tests/test_fmea.py::test_fmea_priority_keeps_high_severity_visible"
+          ],
+          "acceptance": "Invalid/unrelated evidence fails; stale report returns nonzero without overwrite; S >= 8 triggers review even at low RPN."
+        },
+        {
+          "id": "ACT-28",
+          "description": "Reassess scores/actions after deviations, new drawing families or changes to placement/export/settings/dependencies.",
+          "owner": "Tool owner / reviewer",
+          "status": "open",
+          "verification_tests": [
+            "tests/test_fmea.py::test_fmea_rejects_test_evidence_unrelated_to_linked_requirements",
+            "tests/test_fmea.py::test_fmea_cli_detects_drift_and_invalid_input_without_overwriting",
+            "tests/test_fmea.py::test_fmea_priority_keeps_high_severity_visible"
+          ],
+          "acceptance": "Review FMEA with each change request, rerun CI/IQ-OQ and document representative PQ before production. Open actions require real evidence, not merely a linked test name."
+        }
+      ]
+    }
+  ]
+}

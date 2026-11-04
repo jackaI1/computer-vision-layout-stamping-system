@@ -22,5 +22,7 @@ jobs:
         run: python -m pytest -q
       - name: Traceability matrix is complete and current
         run: python quality/trace_matrix.py --check
+      - name: FMEA scores, evidence and report are valid
+        run: python quality/fmea_report.py --check
       - name: IQ/OQ record matches the validated files
         run: python quality/oq_report.py --check

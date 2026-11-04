@@ -32,7 +32,8 @@ ROOT = tm.ROOT
 RECORD = ROOT / "quality" / "validation" / "IQ-OQ-EXECUTED.md"
 VALIDATED_GLOBS = ["app.py", "desktop_app.py", "conftest.py", "stamper/*.py", "tests/*.py",
                    "requirements.txt", "requirements-lock.txt", "requirements-dev.txt",
-                   "quality/requirements.json"]
+                   "quality/requirements.json", "quality/*.py", "quality/fmea.json",
+                   "quality/FMEA.md", "quality/FMEA_REGISTER.md"]
 FINGERPRINT_RE = re.compile(r"Combined fingerprint \(SHA-256\): `([0-9a-f]{64})`")
 
 
