@@ -53,7 +53,7 @@ jobs:
         run: |
           python -m pip install -r requirements-dev.txt
           sudo apt-get update -qq
-          sudo apt-get install -y xvfb libegl1 libopengl0 libxcb-cursor0 libxkbcommon-x11-0 libxcb-xinerama0
+          sudo apt-get install -y xvfb xauth libegl1 libopengl0 libxcb-cursor0 libxkbcommon-x11-0 libxcb-xinerama0
       - name: Download official free ODA converter and verify release checksum
         working-directory: ${{ runner.temp }}
         run: |
@@ -61,6 +61,14 @@ jobs:
           echo 'a73eea1dfc873cd46b94bfa07760dcff0082c4300dd33c5401e8a526cfab787b  oda.AppImage' | sha256sum --check
           chmod +x oda.AppImage
           ./oda.AppImage --appimage-extract > /dev/null
-          echo "ODA_FILE_CONVERTER=$RUNNER_TEMP/squashfs-root/AppRun" >> "$GITHUB_ENV"
+          # ezdxf starts Xvfb with a fixed 0.1s wait. Use xvfb-run's
+          # readiness handshake and scoped cleanup around the actual converter.
+          cat > "$RUNNER_TEMP/oda-ready" <<'SH'
+          #!/bin/sh
+          exec xvfb-run -a "${ODA_REAL_CONVERTER:?}" "$@"
+          SH
+          chmod +x "$RUNNER_TEMP/oda-ready"
+          echo "ODA_REAL_CONVERTER=$RUNNER_TEMP/squashfs-root/AppRun" >> "$GITHUB_ENV"
+          echo "ODA_FILE_CONVERTER=$RUNNER_TEMP/oda-ready" >> "$GITHUB_ENV"
       - name: Real DXF to DWG to stamped DWG roundtrip
         run: python -m pytest tests/test_cad_cli.py::test_real_oda_dwg_roundtrip_and_stamp -q
