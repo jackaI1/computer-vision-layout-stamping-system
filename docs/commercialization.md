@@ -1,8 +1,12 @@
 # Could I turn the stamping tool into a product?
 
-I built this assessment because a tool that saves me time at one firm still needs evidence before I offer it to another. I separate three questions: does it work, what rights might affect it, and who could support the next experiment? This is my assessment as of 2026-11-04, not an independent certification or an awarded funding application.
+I built this guide because saving time with my drawing tool at one firm does not tell me whether it is ready for other firms. My tool places a seal image on engineering drawings while looking for space away from notes and linework; I review the proposed positions before exporting. This commercialization assessment is my guide to the checks I need before offering it more widely. I separate three questions: does it work, what rights might affect it, and who could support the next experiment? This is my assessment as of 2026-11-04, not an independent certification or an awarded funding application.
 
 My decision is to keep the public tool available and plan a supervised pilot before a broader release. I rate the **public PDF prototype at TRL 6**, meaning a working system demonstrated in a simulated setting. My original workplace use is useful context, but I cannot use private drawings or a reported time saving to qualify every change in this public version. The newer CAD workflow has its own tests and does not inherit a field-use rating from the PDF tool.
+
+## Terms I use
+
+Intellectual property (IP) means rights in creations such as software and inventions. A patent publication is a public description of a proposed invention, not proof of a currently enforceable right. MIT is the short name of the reuse licence on the original code; dependency obligations are the separate conditions on packages the tool uses. In the funding table, IRAP is the Industrial Research Assistance Program, SR&ED is Scientific Research and Experimental Development tax support, and Mitacs Accelerate funds supervised research internships. I explain their practical limits below.
 
 ## How I use this assessment
 
