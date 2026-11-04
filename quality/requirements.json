@@ -355,6 +355,18 @@
       "tests": [
         "tests/test_cad_cli.py::*"
       ]
+    },
+    {
+      "id": "REQ-25",
+      "title": "Commercialization evidence integrity",
+      "text": "Keep readiness evidence paths and reviewed patent citations resolvable, with optional live publication identity checks that fail on unavailable or mismatched sources.",
+      "risk": "Low",
+      "code": [
+        "scripts/check_commercialization.py"
+      ],
+      "tests": [
+        "tests/test_commercialization.py::*"
+      ]
     }
   ]
 }

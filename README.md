@@ -85,6 +85,22 @@ synthetic results and limitations. [ASSUMPTIONS.md](ASSUMPTIONS.md) records the
 seal layout and reserved areas. The reported reduction from twenty minutes to
 under one minute came from real use, not the public sample sheets.
 
+## Before offering it to another firm
+
+I keep a [commercialization assessment](docs/commercialization.md) to decide
+what evidence I need before a wider release. It rates the public PDF prototype
+on a nine-level readiness scale, compares nearby patent publications and maps
+possible Canadian research support. It also explains the licence and the real
+drawing checks I still need. I can check its citations without an account:
+
+```sh
+python scripts/check_commercialization.py
+```
+
+Add `--online` to recheck patent publication numbers and titles against their
+source pages. The assessment distinguishes reported workplace use from tests
+that anyone can reproduce here.
+
 ## How the placement works
 
 The browser interface is built with Streamlit, a Python tool for interactive
