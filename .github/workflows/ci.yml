@@ -41,7 +41,7 @@ jobs:
     timeout-minutes: 10
     env:
       TEST_ODA: "1"
-      QT_QPA_PLATFORM: offscreen
+      QT_QPA_PLATFORM: xcb
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
