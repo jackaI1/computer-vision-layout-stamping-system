@@ -6,6 +6,15 @@ Install the audited runtime with `pip install -r requirements.txt` (which constr
 
 ## Runtime dependencies
 
+The CAD extension adds ezdxf 1.4.5 (MIT), fonttools 4.68.0 (MIT, with the
+upstream external-component notices retained), and pyparsing 3.3.3 (MIT).
+Their terms are preserved in [ezdxf](THIRD_PARTY_LICENSES/ezdxf/LICENSE),
+[fonttools](THIRD_PARTY_LICENSES/fonttools/LICENSE),
+[fonttools external notices](THIRD_PARTY_LICENSES/fonttools/LICENSE.external),
+and [pyparsing](THIRD_PARTY_LICENSES/pyparsing/LICENSE). The ODA File Converter
+is optional, separately installed, and governed by ODA's own terms. It is not
+redistributed in this repository or the sample-output artifacts.
+
 | Component | Version | License / class | Source | Preserved terms |
 |---|---|---|---|---|
 | altair | 6.3.0 | BSD-3-Clause / permissive | [upstream](https://github.com/vega/altair) | [LICENSE](THIRD_PARTY_LICENSES/altair/altair-6.3.0.dist-info/licenses/LICENSE) |

@@ -1,6 +1,6 @@
 # Computer Vision Layout Stamping System
 
-I built a drawing-stamping tool because placing the same seal on every PDF sheet by hand took time, and a fixed position could cover notes or linework.
+I built a drawing-stamping tool because placing the same seal on every sheet by hand took time, and a fixed position could cover notes or linework.
 
 ## Overview
 
@@ -8,6 +8,11 @@ I give it a seal image and a set of drawings. It looks for a box marked for the
 seal, then searches for an open area if there isn't a suitable box. It shows me
 the placements covering the most drawing content first, so I can check those
 before exporting. I can move or remove any seal and download the finished PDFs.
+
+I can also stamp an editable CAD drawing, the drawing file used by AutoCAD.
+This lets me keep its layers, which group items such as walls and furniture,
+and its sheet layouts instead of exporting to PDF first. The CAD commands below
+make a stamped drawing copy and a PDF I can review.
 
 I built the original during an engineering co-op. This public version uses
 generated sheets and a demonstration seal, with no client drawings or real
@@ -33,6 +38,38 @@ move or remove it if needed, then download the PDFs. Output names end in
 
 The sample generator also writes stamped examples without opening the app.
 For the optional Windows package, see the [packaging guide](packaging/README.md).
+
+## Stamp editable drawings
+
+I use the command line for CAD drawings. DXF is an exchange format AutoCAD can
+open; it works with the same Python setup above, without an AutoCAD installation.
+The example includes a generated floor plan, two sheets and a seal marked
+"DEMO / NOT VALID".
+
+```sh
+python -m stamper.cad inspect examples/cad/floor_plan.dxf
+python -m stamper.cad edit examples/cad/floor_plan.dxf --off FURNITURE --bind-xrefs -o output/cad/plan.dxf
+python -m stamper.cad stamp output/cad/plan.dxf --seal examples/cad/demo_seal.dxf --layout A101 --layout A102 --center 350 180 --diameter 40 --date 2026-11-04 --caption "DEMONSTRATION ONLY" -o output/cad/plan_stamped.dxf --pdf output/cad/plan_stamped.pdf
+```
+
+I open `output/cad/plan_stamped.pdf` to review the two sheets, and open the DXF
+in a CAD editor to keep editing. The commands create new files and refuse to
+overwrite existing output. To repeat the example, choose new output names.
+
+The first command lists layers, sheets and xrefs, which are links to other
+drawing files. The second hides furniture and binds those links, meaning it
+copies their drawing content into the output so the copy can travel on its own.
+`--on FURNITURE` shows furniture again. The last command places a reusable seal
+block, a group of drawing objects, on the `STAMPER_SEAL` layer in the selected
+sheet layouts. I can hide that layer to hide the seal, date and caption together.
+
+For this sample, the centre is 350 mm right and 180 mm up from the sheet origin,
+and the seal diameter is 40 mm. I choose and review the CAD position explicitly;
+the automatic open-space search belongs to the PDF workflow. My own vector seal
+can be supplied as a DXF with the seal geometry in model space, the drawing's
+main working area. DWG, AutoCAD's native format, also works with the separately
+installed free ODA converter. [The CAD guide](docs/cad.md) covers that setup,
+reference folders, plotting existing drawings, and limitations.
 
 ## Review before exporting
 

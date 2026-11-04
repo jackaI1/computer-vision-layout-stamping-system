@@ -1,6 +1,6 @@
 {
   "document": "QMS-FMEA-001",
-  "revision": 1,
+  "revision": 2,
   "failure_modes": [
     {
       "id": "FM-01",
@@ -671,6 +671,58 @@
             "tests/test_fmea.py::test_fmea_priority_keeps_high_severity_visible"
           ],
           "acceptance": "Review FMEA with each change request, rerun CI/IQ-OQ and document representative PQ before production. Open actions require real evidence, not merely a linked test name."
+        }
+      ]
+    },
+    {
+      "id": "FM-15",
+      "type": "design",
+      "step": "CAD import, stamp and plot",
+      "failure_mode": "CAD sheet omits referenced content or places a seal at the wrong printed size",
+      "effects": "An incomplete or misleading review drawing is exported, or a seal covers drawing content.",
+      "causes": "Missing/nested references, wrong paper units or origins, hidden layers, unsupported CAD objects or an unreviewed manual position.",
+      "requirements": [
+        "REQ-21",
+        "REQ-22",
+        "REQ-23",
+        "REQ-24"
+      ],
+      "prevention": "Bind references bottom-up, reject missing/cyclic paths, preserve paper units and origin, contain the seal block, and refuse output overwrite.",
+      "detection_controls": "Real DXF/DWG roundtrips, PDF page/ink checks, generated sample plots and an explicit user review step.",
+      "scores": {
+        "severity": 8,
+        "occurrence": 4,
+        "detection": 4
+      },
+      "rationale": {
+        "severity": "A misleading drawing can inform a bad engineering decision; applying the seal itself is not approval.",
+        "occurrence": "The tests cover synthetic 2D sheets; the variety and frequency of unsupported production CAD content are unknown.",
+        "detection": "Automated checks catch defined reference, geometry and plotting errors; real sheet completeness and overlap still require review."
+      },
+      "actions": [
+        {
+          "id": "ACT-29",
+          "description": "Run file/reference, paper-space seal, physical plot and CLI tests, including real ODA conversion in its CI job.",
+          "owner": "Maintainer",
+          "status": "verified_automated",
+          "verification_tests": [
+            "tests/test_cad_io.py::test_nested_xrefs_bind_relative_to_each_file_and_preserve_host",
+            "tests/test_cad_stamp.py::test_inch_sheet_uses_paper_units_and_reopens_with_seal",
+            "tests/test_cad_plot.py::test_pdf_preserves_paper_size_and_absolute_seal_position",
+            "tests/test_cad_plot.py::test_closed_polylines_plot_as_outlines_without_solid_fill",
+            "tests/test_cad_cli.py::test_real_oda_dwg_roundtrip_and_stamp"
+          ],
+          "acceptance": "Reopened outputs retain seal inserts and reference geometry; expected dimensions and ink are verified; closed outlines remain hollow."
+        },
+        {
+          "id": "ACT-30",
+          "description": "Review representative real sheets, fonts, title blocks and seal overlap before production use; use native CAD plotting for unsupported content.",
+          "owner": "Tool owner / drawing reviewer",
+          "status": "open",
+          "verification_tests": [
+            "tests/test_cad_cli.py::test_documented_inspect_edit_stamp_plot_workflow"
+          ],
+          "acceptance": "Record a manual review of every intended drawing family. Generated examples do not establish production suitability."
         }
       ]
     }

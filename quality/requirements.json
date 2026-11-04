@@ -7,7 +7,11 @@
       "title": "Ink map of each page",
       "text": "The system shall rasterise each page and classify pixels darker than the ink threshold as ink, and shall compute ink totals for any window exactly (no approximation).",
       "risk": "High",
-      "code": ["stamper/occupancy.py::analyze_page", "stamper/occupancy.py::_integral_image", "stamper/occupancy.py::_window_sums"],
+      "code": [
+        "stamper/occupancy.py::analyze_page",
+        "stamper/occupancy.py::_integral_image",
+        "stamper/occupancy.py::_window_sums"
+      ],
       "tests": [
         "tests/test_occupancy.py::test_integral_image_*",
         "tests/test_occupancy.py::test_window_sums_*",
@@ -20,7 +24,10 @@
       "title": "Least-ink placement",
       "text": "When no designated stamp cell exists, the system shall choose the eligible position with the least ink under the seal footprint, searching the whole eligible grid.",
       "risk": "High",
-      "code": ["stamper/occupancy.py::find_min_ink_spot", "stamper/placement.py::place_one_page"],
+      "code": [
+        "stamper/occupancy.py::find_min_ink_spot",
+        "stamper/placement.py::place_one_page"
+      ],
       "tests": [
         "tests/test_occupancy.py::test_finds_the_blank_half_*",
         "tests/test_occupancy.py::test_reports_nonzero_coverage_when_every_position_has_ink",
@@ -34,7 +41,9 @@
       "title": "Open-space tie-break",
       "text": "Among equally inked positions the system shall prefer the one with the largest exact ink-free clearance, and shall never accept more ink for more clearance.",
       "risk": "Medium",
-      "code": ["stamper/occupancy.py::_most_open_candidate"],
+      "code": [
+        "stamper/occupancy.py::_most_open_candidate"
+      ],
       "tests": [
         "tests/test_occupancy.py::test_clearance_tiebreak_*",
         "tests/test_occupancy.py::test_clearance_selects_exact_*",
@@ -46,7 +55,9 @@
       "title": "Reported coverage",
       "text": "The coverage reported for a placement shall be the fraction of ink pixels inside the circular seal footprint, and shall be stricter than or equal to the square search score.",
       "risk": "High",
-      "code": ["stamper/occupancy.py::disk_coverage"],
+      "code": [
+        "stamper/occupancy.py::disk_coverage"
+      ],
       "tests": [
         "tests/test_occupancy.py::test_disk_coverage_*",
         "tests/test_pipeline.py::test_faint_linework_can_be_present_when_reported_coverage_is_zero"
@@ -57,7 +68,10 @@
       "title": "Margins and page fit",
       "text": "The system shall keep the seal inside the configured page margins, shall shrink it on small pages, and shall report failure rather than place a seal that cannot fit.",
       "risk": "High",
-      "code": ["stamper/occupancy.py::find_min_ink_spot", "stamper/placement.py::_safe_corner_placement"],
+      "code": [
+        "stamper/occupancy.py::find_min_ink_spot",
+        "stamper/placement.py::_safe_corner_placement"
+      ],
       "tests": [
         "tests/test_occupancy.py::test_returns_none_when_the_seal_cannot_fit",
         "tests/test_occupancy.py::test_bounds_restrict_the_search_region",
@@ -72,7 +86,11 @@
       "title": "Reserved top-right corner",
       "text": "Automatic whitespace placement shall never overlap the reserved top-right keep-out region, and a page that is entirely reserved shall be refused explicitly.",
       "risk": "High",
-      "code": ["stamper/placement.py::keepout_rects", "stamper/placement.py::intersects_keepout", "stamper/placement.py::placement_in_keepout"],
+      "code": [
+        "stamper/placement.py::keepout_rects",
+        "stamper/placement.py::intersects_keepout",
+        "stamper/placement.py::placement_in_keepout"
+      ],
       "tests": [
         "tests/test_occupancy.py::test_keepout_rectangle_is_avoided",
         "tests/test_occupancy.py::test_returns_none_when_keepout_covers_every_candidate",
@@ -85,7 +103,11 @@
       "title": "Designated stamp cell",
       "text": "When a page has a labelled engineer-stamp cell in real PDF text, the system shall size and centre the seal in that cell in preference to whitespace search, accepting common label spellings.",
       "risk": "High",
-      "code": ["stamper/engineer_box.py::find_engineer_label", "stamper/engineer_box.py::derive_box", "stamper/engineer_box.py::detect_engineer_box"],
+      "code": [
+        "stamper/engineer_box.py::find_engineer_label",
+        "stamper/engineer_box.py::derive_box",
+        "stamper/engineer_box.py::detect_engineer_box"
+      ],
       "tests": [
         "tests/test_pipeline.py::test_cover_detects_and_fits_designated_cell_*",
         "tests/test_pipeline.py::test_detects_common_stamp_box_labels",
@@ -98,7 +120,9 @@
       "title": "Every page placed, riskiest first",
       "text": "The system shall produce a placement for every page of a set and order pages by descending coverage so the operator reviews the hardest placements first.",
       "risk": "Medium",
-      "code": ["stamper/placement.py::compute_placements"],
+      "code": [
+        "stamper/placement.py::compute_placements"
+      ],
       "tests": [
         "tests/test_pipeline.py::test_every_page_is_placed_and_sorted_riskiest_first",
         "tests/test_pipeline.py::test_ten_sheet_set_is_stamped_on_every_page"
@@ -109,7 +133,10 @@
       "title": "Stale placements corrected, manual placements kept",
       "text": "Before output the system shall relocate stale automatic placements that violate current settings and shall never move a placement the operator set manually.",
       "risk": "High",
-      "code": ["stamper/placement.py::sanitize_placements", "app.py::_make_download_callable"],
+      "code": [
+        "stamper/placement.py::sanitize_placements",
+        "app.py::_make_download_callable"
+      ],
       "tests": [
         "tests/test_pipeline.py::test_sanitize_relocates_stale_auto_but_preserves_manual",
         "tests/test_ui.py::test_download_sanitizes_late_stale_automatic_placement"
@@ -120,7 +147,11 @@
       "title": "Operator review and override",
       "text": "The operator shall be able to move, remove and restore the seal on any page, and the downloaded PDF shall reflect exactly those decisions.",
       "risk": "High",
-      "code": ["app.py::_review_card", "app.py::_apply_to_all_pages", "stamper/preview.py::compose_preview"],
+      "code": [
+        "app.py::_review_card",
+        "app.py::_apply_to_all_pages",
+        "stamper/preview.py::compose_preview"
+      ],
       "tests": [
         "tests/test_pipeline.py::test_preview_maps_clicks_and_removal_restores_source",
         "tests/test_pipeline.py::test_removal_leaves_page_unstamped_*",
@@ -134,7 +165,10 @@
       "title": "Original content preserved",
       "text": "By default the output PDF shall keep the original vector, text and raster content unchanged and add the seal as an overlay; rasterising the page shall be an explicit operator choice.",
       "risk": "High",
-      "code": ["stamper/pdf_writer.py::render_stamped_pdf", "stamper/pdf_writer.py::_flatten_doc"],
+      "code": [
+        "stamper/pdf_writer.py::render_stamped_pdf",
+        "stamper/pdf_writer.py::_flatten_doc"
+      ],
       "tests": [
         "tests/test_pipeline.py::test_pdf_overlay_preserves_content_and_upright_geometry",
         "tests/test_pipeline.py::test_original_raster_image_bytes_are_preserved",
@@ -146,7 +180,10 @@
       "title": "Correct position on rotated and offset pages",
       "text": "The seal shall appear upright at the displayed position on pages rotated by 0, 90, 180 or 270 degrees and on pages whose origin is not (0, 0).",
       "risk": "High",
-      "code": ["stamper/pdf_writer.py::_derotation_with_origin", "stamper/pdf_writer.py::_insert_one"],
+      "code": [
+        "stamper/pdf_writer.py::_derotation_with_origin",
+        "stamper/pdf_writer.py::_insert_one"
+      ],
       "tests": [
         "tests/test_pipeline.py::test_pdf_overlay_preserves_content_and_upright_geometry",
         "tests/test_pipeline.py::test_nonzero_page_origin_*"
@@ -157,7 +194,10 @@
       "title": "Date and caption",
       "text": "The system shall print the chosen date and caption as selectable text with the chosen size and colour, shall not silently drop the date on a small seal, and shall print no caption when the field is cleared.",
       "risk": "Medium",
-      "code": ["stamper/pdf_writer.py::_insert_one", "app.py::_sidebar"],
+      "code": [
+        "stamper/pdf_writer.py::_insert_one",
+        "app.py::_sidebar"
+      ],
       "tests": [
         "tests/test_pipeline.py::test_date_font_colour_and_caption_reach_pdf",
         "tests/test_pipeline.py::test_small_seal_date_is_not_silently_dropped",
@@ -171,7 +211,12 @@
       "title": "Seal image preparation",
       "text": "The system shall make the seal's white background transparent, remove edge crop artefacts without cutting the seal, trim empty margin, and identify each seal by a content hash.",
       "risk": "Medium",
-      "code": ["stamper/stamp_image.py::load_stamp_from_bytes", "stamper/stamp_image.py::_make_white_transparent", "stamper/stamp_image.py::_strip_border_lines", "stamper/stamp_image.py::_trim_transparent"],
+      "code": [
+        "stamper/stamp_image.py::load_stamp_from_bytes",
+        "stamper/stamp_image.py::_make_white_transparent",
+        "stamper/stamp_image.py::_strip_border_lines",
+        "stamper/stamp_image.py::_trim_transparent"
+      ],
       "tests": [
         "tests/test_stamp_image.py::*"
       ]
@@ -181,7 +226,11 @@
       "title": "Cache correctness",
       "text": "Cached results shall not outlive their inputs: changing a placement setting or replacing a seal file shall refresh results, and changing only date or caption shall not recompute placements.",
       "risk": "Medium",
-      "code": ["stamper/config.py::Settings.cache_key", "stamper/config.py::Settings.render_key", "app.py::_read_seal_bytes"],
+      "code": [
+        "stamper/config.py::Settings.cache_key",
+        "stamper/config.py::Settings.render_key",
+        "app.py::_read_seal_bytes"
+      ],
       "tests": [
         "tests/test_ui.py::test_replacing_seal_file_invalidates_cached_bytes",
         "tests/test_ui.py::test_sidebar_exposes_date_colour_*"
@@ -192,7 +241,10 @@
       "title": "Bad input is reported, not hidden",
       "text": "An unreadable, password-protected or empty PDF shall be skipped with a stated reason, and a page analysis failure shall be reported instead of shown as zero coverage.",
       "risk": "High",
-      "code": ["app.py::_validate_pdf", "stamper/placement.py::compute_placements"],
+      "code": [
+        "app.py::_validate_pdf",
+        "stamper/placement.py::compute_placements"
+      ],
       "tests": [
         "tests/test_controls.py::test_readable_pdf_is_accepted",
         "tests/test_controls.py::test_non_pdf_bytes_*",
@@ -205,7 +257,9 @@
       "title": "Local-only processing",
       "text": "Placement and PDF writing shall run entirely on the operator's computer; the stamper package shall not import network modules.",
       "risk": "Medium",
-      "code": ["stamper/__init__.py"],
+      "code": [
+        "stamper/__init__.py"
+      ],
       "tests": [
         "tests/test_controls.py::test_stamper_package_imports_no_network_modules"
       ]
@@ -215,7 +269,10 @@
       "title": "Runtime compatibility of pinned dependencies",
       "text": "The pinned Streamlit and Starlette versions shall serve preview media with correct HTTP headers under identity and gzip encoding.",
       "risk": "Medium",
-      "code": ["requirements.txt", "requirements-lock.txt"],
+      "code": [
+        "requirements.txt",
+        "requirements-lock.txt"
+      ],
       "tests": [
         "tests/test_runtime_compat.py::test_preview_media_responses_include_http_headers"
       ]
@@ -225,7 +282,12 @@
       "title": "Validation records are generated and stay current",
       "text": "The traceability matrix and the IQ/OQ execution record shall be generated from the requirements file, test names and real test results, and shall be detectably stale when a validated file changes.",
       "risk": "Medium",
-      "code": ["quality/trace_matrix.py::build", "quality/trace_matrix.py::render", "quality/oq_report.py::fingerprint", "quality/oq_report.py::parse_junit"],
+      "code": [
+        "quality/trace_matrix.py::build",
+        "quality/trace_matrix.py::render",
+        "quality/oq_report.py::fingerprint",
+        "quality/oq_report.py::parse_junit"
+      ],
       "tests": [
         "tests/test_quality_tools.py::*"
       ]
@@ -243,6 +305,55 @@
       ],
       "tests": [
         "tests/test_fmea.py::*"
+      ]
+    },
+    {
+      "id": "REQ-21",
+      "title": "CAD drawing and reference IO",
+      "text": "Read and write editable drawing copies, preserve layer and host geometry, and bind nested external references with missing-file, ambiguity and cycle checks.",
+      "risk": "High",
+      "code": [
+        "stamper/cad_io.py"
+      ],
+      "tests": [
+        "tests/test_cad_io.py::*"
+      ]
+    },
+    {
+      "id": "REQ-22",
+      "title": "Paper-space CAD seal blocks",
+      "text": "Import vector seal geometry on a dedicated layer into selected sheets, contain the seal and caption, and replace only tool-owned inserts.",
+      "risk": "High",
+      "code": [
+        "stamper/cad_stamp.py"
+      ],
+      "tests": [
+        "tests/test_cad_stamp.py::*"
+      ]
+    },
+    {
+      "id": "REQ-23",
+      "title": "Physical CAD layout plots",
+      "text": "Plot selected sheets and top-view model viewports at physical paper size, retaining origin and layer visibility and rejecting incomplete references.",
+      "risk": "High",
+      "code": [
+        "stamper/cad_plot.py"
+      ],
+      "tests": [
+        "tests/test_cad_plot.py::*"
+      ]
+    },
+    {
+      "id": "REQ-24",
+      "title": "CAD command workflow and DWG conversion",
+      "text": "Expose inspect, layer edits, reference binding, stamping and plotting through a CLI with protected outputs and an opt-in real ODA DWG roundtrip.",
+      "risk": "High",
+      "code": [
+        "stamper/cad.py",
+        "examples/make_sample_cad.py"
+      ],
+      "tests": [
+        "tests/test_cad_cli.py::*"
       ]
     }
   ]

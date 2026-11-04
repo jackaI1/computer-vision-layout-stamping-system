@@ -1,10 +1,10 @@
 # Seal-stamping design/process FMEA register
 
-Document: QMS-FMEA-001, revision 1. **GENERATED**; edit `fmea.json`.
+Document: QMS-FMEA-001, revision 2. **GENERATED**; edit `fmea.json`.
 
 Method, scoring rubric and limits: [FMEA.md](FMEA.md). Regenerate with `python quality/fmea_report.py`.
 
-**14 failure modes; 14 verified software actions; 14 open actions.** Scores describe current controls. No residual reduction or field failure rates are claimed. Software evidence is limited to synthetic tests; see the [executed IQ/OQ record](validation/IQ-OQ-EXECUTED.md).
+**15 failure modes; 15 verified software actions; 15 open actions.** Scores describe current controls. No residual reduction or field failure rates are claimed. Software evidence is limited to synthetic tests; see the [executed IQ/OQ record](validation/IQ-OQ-EXECUTED.md).
 
 High-severity modes (S >= 8) appear first, then descending RPN within each group. Review triggers do not constitute production acceptance.
 
@@ -18,6 +18,7 @@ High-severity modes (S >= 8) appear first, then descending RPN within each group
 | [FM-09](#fm-09) | process / Load seal | Wrong or damaged seal image is used | 9 | 3 | 7 | 189 | Review before issue |
 | [FM-12](#fm-12) | process / Handle files / publish changes | Confidential drawings or real seals leave the intended local workflow | 9 | 3 | 7 | 189 | Review before issue |
 | [FM-06](#fm-06) | process / Review page set / download | A required page is missed or an excluded page is stamped | 8 | 4 | 5 | 160 | Review before issue |
+| [FM-15](#fm-15) | design / CAD import, stamp and plot | CAD sheet omits referenced content or places a seal at the wrong printed size | 8 | 4 | 4 | 128 | Review before issue |
 | [FM-04](#fm-04) | design / Write transformed overlay | Export differs from reviewed coordinates on rotated or offset pages | 8 | 3 | 5 | 120 | Review before issue |
 | [FM-02](#fm-02) | design / Fit / keep-out | Automatic seal clips off page or enters reserved corner | 8 | 3 | 4 | 96 | Review before issue |
 | [FM-07](#fm-07) | design / Export PDF | Original content is degraded or unintentionally flattened | 8 | 3 | 4 | 96 | Review before issue |
@@ -192,6 +193,27 @@ High-severity modes (S >= 8) appear first, then descending RPN within each group
 | --- | --- | --- | --- | --- |
 | ACT-11: Keep multi-page export and manual removal regression checks. | Maintainer | verified_automated | Synthetic ten-sheet set retains every page and expected seal; explicit removals reach downloaded PDF. | [`tests/test_pipeline.py::test_ten_sheet_set_is_stamped_on_every_page`](../tests/test_pipeline.py#L227)<br>[`tests/test_ui.py::test_manual_edits_and_removal_reach_live_download`](../tests/test_ui.py#L81) |
 | ACT-12: Reconcile page count, sheet identifiers and expected seal presence against the authorized source set. | Independent checker | open | Record A1/A2 for each file, including intended omissions, before issue. No automatic engineering-scope determination exists. | [`tests/test_pipeline.py::test_ten_sheet_set_is_stamped_on_every_page`](../tests/test_pipeline.py#L227)<br>[`tests/test_ui.py::test_manual_edits_and_removal_reach_live_download`](../tests/test_ui.py#L81) |
+
+## FM-15
+
+**CAD sheet omits referenced content or places a seal at the wrong printed size** (design; CAD import, stamp and plot).
+
+- Effect: An incomplete or misleading review drawing is exported, or a seal covers drawing content.
+- Cause: Missing/nested references, wrong paper units or origins, hidden layers, unsupported CAD objects or an unreviewed manual position.
+- Requirements: [REQ-21](TRACEABILITY_MATRIX.md), [REQ-22](TRACEABILITY_MATRIX.md), [REQ-23](TRACEABILITY_MATRIX.md), [REQ-24](TRACEABILITY_MATRIX.md)
+- Current prevention: Bind references bottom-up, reject missing/cyclic paths, preserve paper units and origin, contain the seal block, and refuse output overwrite.
+- Current detection: Real DXF/DWG roundtrips, PDF page/ink checks, generated sample plots and an explicit user review step.
+
+| Score | Current rating | Rationale |
+| --- | ---: | --- |
+| Severity | 8 | A misleading drawing can inform a bad engineering decision; applying the seal itself is not approval. |
+| Occurrence | 4 | The tests cover synthetic 2D sheets; the variety and frequency of unsupported production CAD content are unknown. |
+| Detection | 4 | Automated checks catch defined reference, geometry and plotting errors; real sheet completeness and overlap still require review. |
+
+| Action | Owner | Status | Acceptance / closure evidence | Verification tests |
+| --- | --- | --- | --- | --- |
+| ACT-29: Run file/reference, paper-space seal, physical plot and CLI tests, including real ODA conversion in its CI job. | Maintainer | verified_automated | Reopened outputs retain seal inserts and reference geometry; expected dimensions and ink are verified; closed outlines remain hollow. | [`tests/test_cad_io.py::test_nested_xrefs_bind_relative_to_each_file_and_preserve_host`](../tests/test_cad_io.py#L44)<br>[`tests/test_cad_stamp.py::test_inch_sheet_uses_paper_units_and_reopens_with_seal`](../tests/test_cad_stamp.py#L67)<br>[`tests/test_cad_plot.py::test_pdf_preserves_paper_size_and_absolute_seal_position`](../tests/test_cad_plot.py#L19)<br>[`tests/test_cad_plot.py::test_closed_polylines_plot_as_outlines_without_solid_fill`](../tests/test_cad_plot.py#L77)<br>[`tests/test_cad_cli.py::test_real_oda_dwg_roundtrip_and_stamp`](../tests/test_cad_cli.py#L91) |
+| ACT-30: Review representative real sheets, fonts, title blocks and seal overlap before production use; use native CAD plotting for unsupported content. | Tool owner / drawing reviewer | open | Record a manual review of every intended drawing family. Generated examples do not establish production suitability. | [`tests/test_cad_cli.py::test_documented_inspect_edit_stamp_plot_workflow`](../tests/test_cad_cli.py#L22) |
 
 ## FM-04
 

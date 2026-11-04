@@ -43,3 +43,7 @@ typing_extensions==4.16.0
 urllib3==2.8.0
 uvicorn==0.54.0
 websockets==17.3
+# CAD drawing IO and vector plotting (added 2026-11-04).
+ezdxf==1.4.5
+fonttools==4.68.0
+pyparsing==3.3.3
