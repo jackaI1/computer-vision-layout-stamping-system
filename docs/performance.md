@@ -102,6 +102,15 @@ exactly. The first optimized cache miss can vary with normal system activity.
 [optimized function profile](performance/after-cprofile.txt),
 [original line profile](performance/before-lines.txt) and
 [optimized line profile](performance/after-lines.txt) are the recorded evidence.
+The [recorded Linux run](https://github.com/jackaI1/computer-vision-layout-stamping-system/actions/runs/42139019655)
+passed all checks. Its uninstrumented medians were 202.85 ms before, 155.04 ms
+after (23.6% less time) and 45.63 ms with warm analysis reuse (77.5% less time).
+Its [saved py-spy summary](performance/py-spy-summary.json) records 4,272 total
+samples before and 3,273 after. The integral-image function was present in 2,490
+before samples (58.3%) and 1,745 after samples (53.3%). The sampler independently
+supports the integral step as the main cost; these inclusive counts include
+startup and are not exact stage timings. Both runs completed 200 full passes.
+
 Fresh Linux runs and full sampling profiles are saved by the
 [Performance workflow](../.github/workflows/performance.yml).
 

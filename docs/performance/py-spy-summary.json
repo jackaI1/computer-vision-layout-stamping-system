@@ -1,0 +1,24 @@
+{
+  "before": {
+    "total_samples": 4272,
+    "inclusive_samples": {
+      "analyze_page": 3243,
+      "integral_image": 2490,
+      "_most_open_candidate": 457,
+      "render_stamped_pdf": 296
+    }
+  },
+  "after": {
+    "total_samples": 3273,
+    "inclusive_samples": {
+      "analyze_page": 2242,
+      "_integral_image": 1745,
+      "_most_open_candidate": 449,
+      "render_stamped_pdf": 303
+    }
+  },
+  "source_run": "https://github.com/jackaI1/computer-vision-layout-stamping-system/actions/runs/42139019655",
+  "source_commit": "4232d92",
+  "rate_hz": 100,
+  "repeats_per_implementation": 200
+}
