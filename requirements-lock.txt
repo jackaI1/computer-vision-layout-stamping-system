@@ -47,3 +47,6 @@ websockets==17.3
 ezdxf==1.4.5
 fonttools==4.68.0
 pyparsing==3.3.3
+
+# Local 1D and 2D station label decoding and synthetic label generation.
+zxing-cpp==3.0.0

@@ -20,6 +20,16 @@ jobs:
         run: python -m pip install -r requirements-dev.txt
       - name: Test suite
         run: python -m pytest -q
+      - name: Part presence and real barcode sensitivity sweep
+        run: python -m stamper.station_demo --output-dir output/station
+      - name: Single-frame station command
+        run: python -m stamper.station --image output/station/present.png --empty output/station/empty.png --recipe output/station/recipe.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: station-lighting-sensitivity
+          path: output/station/
+          retention-days: 7
       - name: Commercialization citations
         run: python scripts/check_commercialization.py
       - name: Traceability matrix is complete and current

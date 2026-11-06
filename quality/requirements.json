@@ -367,6 +367,19 @@
       "tests": [
         "tests/test_commercialization.py::*"
       ]
+    },
+    {
+      "id": "REQ-26",
+      "title": "Fixed-camera part and label station",
+      "text": "Check calibrated part presence under varied lighting and independently decode exact 1D/2D label identities; report a fresh fail-low decision on missing parts, mismatches, invalid inputs or processing faults, with a reproducible synthetic sensitivity report.",
+      "risk": "High",
+      "code": [
+        "stamper/station.py",
+        "stamper/station_demo.py"
+      ],
+      "tests": [
+        "tests/test_station.py::*"
+      ]
     }
   ]
 }
