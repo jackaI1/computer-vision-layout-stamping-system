@@ -2,8 +2,8 @@
 
 | | |
 | --- | --- |
-| Document | QMS-FMEA-001, revision 1, 2026-11-03 |
-| Scope | Local PDF seal preparation, placement, review, export and change control |
+| Document | QMS-FMEA-001, revision 4, 2026-11-05 |
+| Scope | Local PDF/CAD stamping, carrier inspection, review, export and change control |
 | Status | Engineering assessment for a public demonstration; unsigned and not production-approved |
 | Register | [Scored failure modes, controls, actions and evidence](FMEA_REGISTER.md) |
 | Source | [`fmea.json`](fmea.json); generator/checker: [`fmea_report.py`](fmea_report.py) |
@@ -73,7 +73,9 @@ relationship, **not execution success**. Some tests characterize a limitation
 (faint ink and caption overhang); their acceptance text explicitly preserves that
 limitation. `open` means the action needs operator/PQ evidence or a future controlled
 change. Its linked tests support only the software part, not human authorization or
-completion. All 14 procedural/follow-up actions remain open in this demonstration.
+completion. Procedural/follow-up actions remain open in this demonstration.
+The carrier station mode also requires real camera and PLC adapter commissioning;
+the synthetic image checks do not establish hardware readiness.
 
 A responsible role must provide the stated acceptance evidence before closing an
 open action. Keep real seal files, client drawings, approvals and issue records in

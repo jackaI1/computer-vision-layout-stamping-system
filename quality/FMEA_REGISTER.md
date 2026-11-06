@@ -1,10 +1,10 @@
 # Seal-stamping design/process FMEA register
 
-Document: QMS-FMEA-001, revision 3. **GENERATED**; edit `fmea.json`.
+Document: QMS-FMEA-001, revision 4. **GENERATED**; edit `fmea.json`.
 
 Method, scoring rubric and limits: [FMEA.md](FMEA.md). Regenerate with `python quality/fmea_report.py`.
 
-**16 failure modes; 16 verified software actions; 16 open actions.** Scores describe current controls. No residual reduction or field failure rates are claimed. Software evidence is limited to synthetic tests; see the [executed IQ/OQ record](validation/IQ-OQ-EXECUTED.md).
+**17 failure modes; 17 verified software actions; 17 open actions.** Scores describe current controls. No residual reduction or field failure rates are claimed. Software evidence is limited to synthetic tests; see the [executed IQ/OQ record](validation/IQ-OQ-EXECUTED.md).
 
 High-severity modes (S >= 8) appear first, then descending RPN within each group. Review triggers do not constitute production acceptance.
 
@@ -12,6 +12,7 @@ High-severity modes (S >= 8) appear first, then descending RPN within each group
 | --- | --- | --- | ---: | ---: | ---: | ---: | --- |
 | [FM-01](#fm-01) | design / Analyze / search | Seal hides faint or crowded drawing content | 8 | 5 | 7 | 280 | Review before issue |
 | [FM-08](#fm-08) | process / Set date / caption | Wrong date or caption obscures content outside scored footprint | 8 | 5 | 7 | 280 | Review before issue |
+| [FM-17](#fm-17) | design / Fixed-camera carrier and label inspection | A missing or wrong carrier receives a passing station decision | 8 | 5 | 7 | 280 | Review before issue |
 | [FM-11](#fm-11) | process / Authorize / issue | Applying an image is mistaken for engineering approval | 9 | 3 | 8 | 216 | Review before issue |
 | [FM-03](#fm-03) | design / Detect title-block cell | Wrong or unrecognized designated cell is selected | 8 | 4 | 6 | 192 | Review before issue |
 | [FM-05](#fm-05) | design / Cache / manual override | Stale automatic location or manual override reaches export | 8 | 4 | 6 | 192 | Review before issue |
@@ -68,6 +69,27 @@ High-severity modes (S >= 8) appear first, then descending RPN within each group
 | --- | --- | --- | --- | --- |
 | ACT-15: Document the caption footprint limit with exported-PDF geometry and retain date/text checks. | Maintainer | verified_automated | Chosen date/caption render; small date is not dropped; caption bounds demonstrate extension beyond scored disk. | [`tests/test_pipeline.py::test_caption_extends_beyond_the_scored_seal_footprint`](../tests/test_pipeline.py#L289)<br>[`tests/test_pipeline.py::test_date_font_colour_and_caption_reach_pdf`](../tests/test_pipeline.py#L208)<br>[`tests/test_pipeline.py::test_small_seal_date_is_not_silently_dropped`](../tests/test_pipeline.py#L137) |
 | ACT-16: Confirm authorized date/caption and inspect space below the seal; move, shorten or clear caption if needed. Consider expanded collision bounds in a separate change. | Operator / tool owner | open | Record A4/A5 on downloaded output. Caption-aware automatic clearance and project authorization are not implemented by these tests. | [`tests/test_pipeline.py::test_caption_extends_beyond_the_scored_seal_footprint`](../tests/test_pipeline.py#L289)<br>[`tests/test_pipeline.py::test_date_font_colour_and_caption_reach_pdf`](../tests/test_pipeline.py#L208)<br>[`tests/test_pipeline.py::test_small_seal_date_is_not_silently_dropped`](../tests/test_pipeline.py#L137) |
+
+## FM-17
+
+**A missing or wrong carrier receives a passing station decision** (design; Fixed-camera carrier and label inspection).
+
+- Effect: A downstream stamping step could start with the wrong loaded carrier or drawing revision.
+- Cause: Poor lighting, glare, uncalibrated area limits, detached labels, stale captures or an output adapter holding a previous pass.
+- Requirements: [REQ-26](TRACEABILITY_MATRIX.md)
+- Current prevention: Require bounded changed area and centroid, valid reference/frame lighting, limited glare and exact code identities in separate regions. Emit one fresh decision and fail low on processing faults.
+- Current detection: Synthetic light/contrast/glare sweep, real 1D/2D decoding and CLI error regressions. No physical output or capture freshness validation is claimed.
+
+| Score | Current rating | Rationale |
+| --- | ---: | --- |
+| Severity | 8 | A wrong carrier or revision could cause required stamping to be incomplete; independent drawing review is still required. |
+| Occurrence | 5 | Real camera, label and fixture variation are unmeasured; same-area objects and detached labels remain plausible. |
+| Detection | 7 | Synthetic checks cannot establish real part identity, capture freshness or adapter wiring; commissioning and independent review remain necessary. |
+
+| Action | Owner | Status | Acceptance / closure evidence | Verification tests |
+| --- | --- | --- | --- | --- |
+| ACT-33: Exercise loaded and empty fixtures under changed brightness, contrast and glare; reject wrong codes and processing faults. | Maintainer | verified_automated | All 44 synthetic sweep decisions match expected outcomes; the current result is LOW for inspection and processing failures. | [`tests/test_station.py::test_lighting_and_contrast_sensitivity`](../tests/test_station.py#L19)<br>[`tests/test_station.py::test_small_oversize_and_shifted_parts_fail_even_with_good_codes`](../tests/test_station.py#L92)<br>[`tests/test_station.py::test_cli_processing_errors_emit_fail_low_json`](../tests/test_station.py#L178)<br>[`tests/test_station.py::test_cli_pass_then_fail_does_not_reuse_previous_high`](../tests/test_station.py#L165) |
+| ACT-34: Commission the real camera, fixture and isolated PLC adapter with fresh-cycle IDs, watchdog timeouts and held-out good/bad images. | Station owner | open | Record physical timing, fault and wiring trials and real image results before use. Software tests do not close this action. | [`tests/test_station.py::test_cli_pass_then_fail_does_not_reuse_previous_high`](../tests/test_station.py#L165) |
 
 ## FM-11
 

@@ -10,8 +10,8 @@ for the plain-words explanation and the honest list of gaps.
 | [`SOP-001-stamp-placement.md`](SOP-001-stamp-placement.md) | Controlled procedure for using the tool: purpose, scope, roles, steps, acceptance checks, deviations, record templates. |
 | [`SOP-002-change-control.md`](SOP-002-change-control.md) | How changes are requested, assessed, tested, reviewed and released. |
 | [`CHANGE_LOG.md`](CHANGE_LOG.md) | Record of changes to the validated tool. |
-| [`FMEA.md`](FMEA.md), [`FMEA_REGISTER.md`](FMEA_REGISTER.md) | Design/process risk analysis: 14 scored modes, controls, owned actions and exact requirement/test links. Register generated from [`fmea.json`](fmea.json). |
-| [`requirements.json`](requirements.json) | The 20 requirements: the one hand-maintained input to traceability. |
+| [`FMEA.md`](FMEA.md), [`FMEA_REGISTER.md`](FMEA_REGISTER.md) | Design/process risk analysis: 17 scored modes, controls, owned actions and exact requirement/test links. Register generated from [`fmea.json`](fmea.json). |
+| [`requirements.json`](requirements.json) | The 26 requirements: the one hand-maintained input to traceability. |
 | [`TRACEABILITY_MATRIX.md`](TRACEABILITY_MATRIX.md) | Requirement to code to test, **generated**. |
 | [`validation/VP-001-validation-protocol.md`](validation/VP-001-validation-protocol.md) | IQ/OQ/PQ protocol. |
 | [`validation/IQ-OQ-EXECUTED.md`](validation/IQ-OQ-EXECUTED.md) | Executed IQ and OQ results, **generated** from the real test run. |

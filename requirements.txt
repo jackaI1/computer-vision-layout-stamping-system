@@ -11,3 +11,6 @@ PyMuPDF==1.26.7
 Pillow==12.3.0
 numpy==2.5.4
 ezdxf==1.4.5
+
+# Local 1D and 2D station label decoding and synthetic label generation.
+zxing-cpp==3.0.0

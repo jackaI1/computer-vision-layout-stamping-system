@@ -35,6 +35,7 @@ VALIDATED_GLOBS = ["app.py", "desktop_app.py", "conftest.py", "stamper/*.py", "t
                    "quality/requirements.json", "quality/*.py", "quality/fmea.json",
                    "quality/FMEA.md", "quality/FMEA_REGISTER.md"]
 VALIDATED_GLOBS += ["scripts/check_commercialization.py", "docs/commercialization.md", "docs/patents.json"]
+VALIDATED_GLOBS += ["docs/station.md"]
 VALIDATED_GLOBS += ["examples/make_sample_cad.py", "examples/cad/*.dxf",
                     ".github/workflows/ci.yml"]
 FINGERPRINT_RE = re.compile(r"Combined fingerprint \(SHA-256\): `([0-9a-f]{64})`")

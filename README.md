@@ -19,6 +19,12 @@ generated sheets and a demonstration seal, with no client drawings or real
 professional seal. To try it, run the sample below and review the suggested
 positions in the browser. Applying an image does not approve a drawing.
 
+I also use a [station check](docs/station.md) to check that a drawing or seal
+carrier is loaded in a fixed position and that its two labels match the expected
+drawing and revision. It reports PASS or FAIL from an image. To try that example
+after the Python setup below, run `python -m stamper.station_demo`; it creates
+the images and a lighting-test report in `output/station/`.
+
 ## Try it
 
 Use Python 3.12. From the repository root:
@@ -112,6 +118,26 @@ the chosen image, date and caption to the original document.
 I keep the search and export details in [the placement guide](docs/placement.md),
 including rotated pages and cases where an apparently empty area is unsafe.
 
+## Check a labelled part
+
+The station command compares a camera image with an empty fixture image. It
+checks a fixed area for the part and reads a barcode and a square QR label from
+their own areas. I use the expected drawing number and revision to reject a
+loaded carrier with the wrong labels. A missing part, unreadable code or poor
+image produces FAIL.
+
+```sh
+python -m stamper.station_demo --output-dir output/station
+python -m stamper.station --image output/station/present.png --empty output/station/empty.png --recipe output/station/recipe.json
+```
+
+The second command prints a JSON record with `status`, reasons, measured part
+area and the decoded labels. `plc_pass` is 1 only when every check passes, and
+0 on failure. A PLC is a machine controller; this value is for an output adapter,
+not an electrical signal. The example runs locally without a camera or account.
+The [station guide](docs/station.md) explains camera calibration, the low-output
+fault behavior and how to inspect my own images.
+
 ## Repeatable checks
 
 I keep a [placement procedure](quality/SOP-001-stamp-placement.md) so the input,
@@ -142,6 +168,10 @@ python quality/oq_report.py --check
 To regenerate a report, omit `--check`. The last command then runs the full test
 suite and writes a new installation/software-check record. Tests use generated
 sheets and cover placement, PDF output, interface controls and the quality scripts.
+The station adds 85 tests and a 44-image lighting and contrast sweep, including
+low light and glare. The sweep measured 44/44 expected decisions with zero false
+passes and zero false rejects on generated images. This is not a real-station
+accuracy claim. CI saves the images and report for inspection.
 Continuous integration (CI), the checks GitHub runs for each change, also rejects
 stale risk registers, requirement links and saved test records.
 

@@ -1,6 +1,6 @@
 {
   "document": "QMS-FMEA-001",
-  "revision": 3,
+  "revision": 4,
   "failure_modes": [
     {
       "id": "FM-01",
@@ -771,6 +771,54 @@
             "tests/test_commercialization.py::test_assessment_citations_and_cli"
           ],
           "acceptance": "Record fixed-release field outcomes and legal review privately. Citation integrity is not acceptance of maturity or freedom to operate."
+        }
+      ]
+    },
+    {
+      "id": "FM-17",
+      "type": "design",
+      "step": "Fixed-camera carrier and label inspection",
+      "failure_mode": "A missing or wrong carrier receives a passing station decision",
+      "effects": "A downstream stamping step could start with the wrong loaded carrier or drawing revision.",
+      "causes": "Poor lighting, glare, uncalibrated area limits, detached labels, stale captures or an output adapter holding a previous pass.",
+      "requirements": [
+        "REQ-26"
+      ],
+      "prevention": "Require bounded changed area and centroid, valid reference/frame lighting, limited glare and exact code identities in separate regions. Emit one fresh decision and fail low on processing faults.",
+      "detection_controls": "Synthetic light/contrast/glare sweep, real 1D/2D decoding and CLI error regressions. No physical output or capture freshness validation is claimed.",
+      "scores": {
+        "severity": 8,
+        "occurrence": 5,
+        "detection": 7
+      },
+      "rationale": {
+        "severity": "A wrong carrier or revision could cause required stamping to be incomplete; independent drawing review is still required.",
+        "occurrence": "Real camera, label and fixture variation are unmeasured; same-area objects and detached labels remain plausible.",
+        "detection": "Synthetic checks cannot establish real part identity, capture freshness or adapter wiring; commissioning and independent review remain necessary."
+      },
+      "actions": [
+        {
+          "id": "ACT-33",
+          "description": "Exercise loaded and empty fixtures under changed brightness, contrast and glare; reject wrong codes and processing faults.",
+          "owner": "Maintainer",
+          "status": "verified_automated",
+          "verification_tests": [
+            "tests/test_station.py::test_lighting_and_contrast_sensitivity",
+            "tests/test_station.py::test_small_oversize_and_shifted_parts_fail_even_with_good_codes",
+            "tests/test_station.py::test_cli_processing_errors_emit_fail_low_json",
+            "tests/test_station.py::test_cli_pass_then_fail_does_not_reuse_previous_high"
+          ],
+          "acceptance": "All 44 synthetic sweep decisions match expected outcomes; the current result is LOW for inspection and processing failures."
+        },
+        {
+          "id": "ACT-34",
+          "description": "Commission the real camera, fixture and isolated PLC adapter with fresh-cycle IDs, watchdog timeouts and held-out good/bad images.",
+          "owner": "Station owner",
+          "status": "open",
+          "verification_tests": [
+            "tests/test_station.py::test_cli_pass_then_fail_does_not_reuse_previous_high"
+          ],
+          "acceptance": "Record physical timing, fault and wiring trials and real image results before use. Software tests do not close this action."
         }
       ]
     }
