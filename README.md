@@ -119,6 +119,28 @@ the chosen image, date and caption to the original document.
 I keep the search and export details in [the placement guide](docs/placement.md),
 including rotated pages and cases where an apparently empty area is unsafe.
 
+## Check speed on large drawings
+
+I reuse the page analysis when I change a seal size or move a seal, so the tool
+can score the new position without rendering that sheet again. The analysis
+cache holds up to 64 MiB per drawing and keeps at most two drawings in the app.
+A page too large for that allowance still works; it is analysed when needed.
+
+I can repeat the speed comparison on four generated large sheets, including a
+rotated sheet and an image-based drawing:
+
+```sh
+python -m benchmarks.profile_pipeline --baseline --label before --repeats 9
+python -m benchmarks.profile_pipeline --label after --repeats 9
+python -m benchmarks.profile_pipeline --cache --label cached --repeats 9
+python -m benchmarks.compare
+```
+
+The comparison checks that the seal positions and covered drawing area stay
+identical. [My performance notes](docs/performance.md) explain the measurements,
+function and line timing, and sampled call stacks, which show where the program
+spends time. The commands save their reports in `output/performance/`.
+
 ## Check a labelled part
 
 The station command compares a camera image with an empty fixture image. It
@@ -173,6 +195,9 @@ The station adds 85 tests and a 44-image lighting and contrast sweep, including
 low light and glare. The sweep measured 44/44 expected decisions with zero false
 passes and zero false rejects on generated images. This is not a real-station
 accuracy claim. CI saves the images and report for inspection.
+A separate performance check enforces a five-second budget for placing and
+exporting four large sheets, checks cache invalidation and memory limits, and
+saves before/after profiles as downloadable CI artifacts.
 Continuous integration (CI), the checks GitHub runs for each change, also rejects
 stale risk registers, requirement links and saved test records.
 

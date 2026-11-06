@@ -41,6 +41,9 @@ VALIDATED_GLOBS += ["examples/make_sample_cad.py", "examples/cad/*.dxf",
 FINGERPRINT_RE = re.compile(r"Combined fingerprint \(SHA-256\): `([0-9a-f]{64})`")
 
 
+VALIDATED_GLOBS += ["benchmarks/*.py", "requirements-profile.txt", ".github/workflows/performance.yml"]
+
+
 # --- fingerprint -----------------------------------------------------------
 def validated_files(root: Path = ROOT) -> list[Path]:
     files: set[Path] = set()

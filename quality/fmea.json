@@ -1,6 +1,6 @@
 {
   "document": "QMS-FMEA-001",
-  "revision": 4,
+  "revision": 5,
   "failure_modes": [
     {
       "id": "FM-01",
@@ -204,9 +204,10 @@
       "requirements": [
         "REQ-09",
         "REQ-10",
-        "REQ-15"
+        "REQ-15",
+        "REQ-27"
       ],
-      "prevention": "Placement/render cache keys and download-time sanitization; manual decisions preserved with UI warning.",
+      "prevention": "Placement/render cache keys and download-time sanitization; manual decisions preserved with UI warning. Document-bound byte-limited analysis caches invalidate on DPI/threshold and are explicitly cleared after document edits.",
       "detection_controls": "Live download tests confirm stale relocation and preservation of manual edits; review still required for overrides.",
       "scores": {
         "severity": 8,
@@ -226,9 +227,13 @@
           "status": "verified_automated",
           "verification_tests": [
             "tests/test_ui.py::test_download_sanitizes_late_stale_automatic_placement",
-            "tests/test_ui.py::test_manual_edits_and_removal_reach_live_download"
+            "tests/test_ui.py::test_manual_edits_and_removal_reach_live_download",
+            "tests/test_performance.py::test_cache_reuses_analysis_only_when_raster_inputs_match",
+            "tests/test_performance.py::test_cache_lru_eviction_oversize_and_document_ownership",
+            "tests/test_performance.py::test_cache_clear_after_document_edit",
+            "tests/test_performance.py::test_large_drawing_pipeline_matches_reference_and_time_budget"
           ],
-          "acceptance": "Late automatic placement is sanitized and downloaded bytes reflect deliberate edits/removals."
+          "acceptance": "Late automatic placement is sanitized and downloaded bytes reflect deliberate edits/removals. Analysis ownership, invalidation and byte limits hold; four generated large sheets retain original placements and export inside the five-second cold budget."
         },
         {
           "id": "ACT-10",

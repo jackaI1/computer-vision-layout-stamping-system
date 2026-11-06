@@ -1,0 +1,122 @@
+{
+  "label": "cached",
+  "mode": "timing",
+  "analysis_dpi": 72,
+  "scope": "placement and non-flattened PDF export; fixture generation/open excluded",
+  "cache": true,
+  "baseline_revision": null,
+  "repeats": 9,
+  "python": "3.12.14",
+  "platform": "macOS-27.0-arm64-arm-64bit",
+  "numpy": "2.5.4",
+  "pymupdf": "1.26.7",
+  "corpus": [
+    {
+      "name": "vector-36x24.pdf",
+      "sha256": "e33b5d69542cf8bd1339bb82ccec2a5a5738d2f44c59e4d4bba825a199f85c7b",
+      "pages": 2,
+      "dimensions_pt": [
+        [
+          0.0,
+          0.0,
+          2592.0,
+          1728.0
+        ],
+        [
+          0.0,
+          0.0,
+          2592.0,
+          1728.0
+        ]
+      ]
+    },
+    {
+      "name": "rotated-a0.pdf",
+      "sha256": "c16fdf212081559924e392e56ebb7fe91b0e4b81fddd156fcce8365f1d210dee",
+      "pages": 1,
+      "dimensions_pt": [
+        [
+          0.0,
+          0.0,
+          3370.0,
+          2384.0
+        ]
+      ]
+    },
+    {
+      "name": "scanned-36x24.pdf",
+      "sha256": "456c91a7f08ab702e000dc86c8e3da2456208c04ddabef66f617151865051020",
+      "pages": 1,
+      "dimensions_pt": [
+        [
+          0.0,
+          0.0,
+          2592.0,
+          1728.0
+        ]
+      ]
+    }
+  ],
+  "seconds": [
+    0.10154766589403152,
+    0.03516991692595184,
+    0.035437165992334485,
+    0.034498709021136165,
+    0.0343699159566313,
+    0.033669416792690754,
+    0.03465466690249741,
+    0.03482270799577236,
+    0.03400504100136459
+  ],
+  "median_seconds": 0.03465466690249741,
+  "first_seconds": 0.10154766589403152,
+  "warm_median_seconds": 0.03457668796181679,
+  "placements": [
+    [
+      {
+        "page_index": 0,
+        "center_x_pt": 2215.5,
+        "center_y_pt": 733.5,
+        "diameter_pt": 136.79999999999998,
+        "source": "whitespace",
+        "coverage": 0.0,
+        "page_width_pt": 2592.0,
+        "page_height_pt": 1728.0
+      },
+      {
+        "page_index": 1,
+        "center_x_pt": 2261.5,
+        "center_y_pt": 1607.0,
+        "diameter_pt": 132.44,
+        "source": "engineer_box",
+        "coverage": 0.0,
+        "page_width_pt": 2592.0,
+        "page_height_pt": 1728.0
+      }
+    ],
+    [
+      {
+        "page_index": 0,
+        "center_x_pt": 607.5,
+        "center_y_pt": 2017.5,
+        "diameter_pt": 136.79999999999998,
+        "source": "whitespace",
+        "coverage": 0.0,
+        "page_width_pt": 3370.0,
+        "page_height_pt": 2384.0
+      }
+    ],
+    [
+      {
+        "page_index": 0,
+        "center_x_pt": 2203.5,
+        "center_y_pt": 733.5,
+        "diameter_pt": 136.79999999999998,
+        "source": "whitespace",
+        "coverage": 0.0,
+        "page_width_pt": 2592.0,
+        "page_height_pt": 1728.0
+      }
+    ]
+  ]
+}

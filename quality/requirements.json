@@ -380,6 +380,22 @@
       "tests": [
         "tests/test_station.py::*"
       ]
+    },
+    {
+      "id": "REQ-27",
+      "title": "Measured large-drawing performance",
+      "text": "Preserve placement and stamped output on large vector, rotated and raster sheets, reuse analysis within an explicit byte budget and guard the cold pipeline with a five-second regression budget.",
+      "risk": "Medium",
+      "code": [
+        "stamper/occupancy.py",
+        "stamper/placement.py",
+        "app.py",
+        "benchmarks/profile_pipeline.py",
+        "benchmarks/compare.py"
+      ],
+      "tests": [
+        "tests/test_performance.py::*"
+      ]
     }
   ]
 }

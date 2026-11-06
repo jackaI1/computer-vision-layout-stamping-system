@@ -2,7 +2,7 @@
 
 | | |
 | --- | --- |
-| Document | QMS-FMEA-001, revision 4, 2026-11-05 |
+| Document | QMS-FMEA-001, revision 5, 2026-11-05 |
 | Scope | Local PDF/CAD stamping, carrier inspection, review, export and change control |
 | Status | Engineering assessment for a public demonstration; unsigned and not production-approved |
 | Register | [Scored failure modes, controls, actions and evidence](FMEA_REGISTER.md) |

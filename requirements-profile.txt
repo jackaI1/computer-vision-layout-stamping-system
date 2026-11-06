@@ -1,0 +1,4 @@
+# Optional measurement tools; runtime users do not need them.
+-r requirements-dev.txt
+py-spy==0.4.1
+line-profiler==5.0.0

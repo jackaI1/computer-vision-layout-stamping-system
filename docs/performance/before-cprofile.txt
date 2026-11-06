@@ -1,0 +1,36 @@
+         188624 function calls (188008 primitive calls) in 0.878 seconds
+
+   Ordered by: cumulative time
+   List reduced from 585 to 30 due to restriction <30>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.000    0.000    0.878    0.878 profile_pipeline.py:69(workload)
+        7    0.000    0.000    0.878    0.125 profile_pipeline.py:28(run_corpus)
+       21    0.000    0.000    0.803    0.038 reference.py:28(compute_placements)
+       28    0.003    0.000    0.623    0.022 reference.py:19(analyze_page)
+       28    0.019    0.001    0.541    0.019 reference.py:13(integral_image)
+       56    0.520    0.009    0.520    0.009 {method 'cumsum' of 'numpy.ndarray' objects}
+       28    0.000    0.000    0.178    0.006 placement.py:98(place_one_page)
+       21    0.002    0.000    0.158    0.008 occupancy.py:182(find_min_ink_spot)
+       21    0.118    0.006    0.126    0.006 occupancy.py:132(_most_open_candidate)
+       28    0.000    0.000    0.076    0.003 __init__.py:11838(get_pixmap)
+       21    0.000    0.000    0.075    0.004 pdf_writer.py:164(render_stamped_pdf)
+       28    0.000    0.000    0.072    0.003 __init__.py:2803(get_pixmap)
+       28    0.000    0.000    0.072    0.003 __init__.py:21092(JM_pixmap_from_display_list)
+       28    0.000    0.000    0.070    0.002 mupdf.py:50863(fz_run_display_list)
+       28    0.070    0.002    0.070    0.002 {built-in method pymupdf._mupdf.fz_run_display_list}
+       21    0.000    0.000    0.054    0.003 pdf_writer.py:129(apply_placements)
+       28    0.000    0.000    0.054    0.002 pdf_writer.py:53(_insert_one)
+       21    0.028    0.001    0.028    0.001 occupancy.py:123(_window_sums)
+       28    0.000    0.000    0.020    0.001 __init__.py:12585(insert_text)
+       28    0.000    0.000    0.018    0.001 engineer_box.py:124(detect_engineer_box)
+       28    0.000    0.000    0.017    0.001 __init__.py:12453(insert_image)
+       21    0.000    0.000    0.017    0.001 __init__.py:6462(save)
+       21    0.000    0.000    0.016    0.001 mupdf.py:56707(pdf_write_document)
+       21    0.012    0.001    0.016    0.001 {built-in method pymupdf._mupdf.pdf_write_document}
+       28    0.000    0.000    0.014    0.000 engineer_box.py:33(find_engineer_label)
+       91    0.000    0.000    0.013    0.000 __init__.py:12899(search_for)
+       56    0.000    0.000    0.013    0.000 __init__.py:12223(insert_font)
+       84    0.000    0.000    0.013    0.000 __init__.py:13185(wrap_contents)
+       84    0.000    0.000    0.013    0.000 __init__.py:9930(_count_q_balance)
+       28    0.000    0.000    0.013    0.000 __init__.py:15214(insert_text)

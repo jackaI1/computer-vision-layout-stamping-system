@@ -36,7 +36,7 @@ from stamper import (
     render_stamped_pdf,
     sanitize_placements,
 )
-from stamper.occupancy import analyze_page, disk_coverage
+from stamper.occupancy import PageAnalysisCache, disk_coverage
 from stamper.placement import Placement, placement_in_keepout
 from stamper.preview import compose_preview, render_base_page
 from stamper.stamp_image import StampAsset, load_stamp_from_bytes
@@ -121,7 +121,7 @@ def _auto_placements(fid: str, settings_key: tuple, logic_version: int,
     # ``settings_key`` + ``logic_version`` form the cache identity; bumping the
     # version invalidates placements made by older logic.
     doc = _open_doc(fid, _pdf_bytes)
-    return [p.to_dict() for p in compute_placements(doc, _settings)]
+    return [p.to_dict() for p in compute_placements(doc, _settings, _analysis_cache(fid, _pdf_bytes))]
 
 
 @st.cache_resource(max_entries=48, show_spinner=False)
@@ -131,11 +131,16 @@ def _base_image(fid: str, page_index: int, dpi: int, _pdf_bytes: bytes):
     return render_base_page(doc[page_index], dpi)
 
 
-@st.cache_resource(max_entries=48, show_spinner=False)
+@st.cache_resource(max_entries=2, show_spinner=False)
+def _analysis_cache(fid: str, _pdf_bytes: bytes):
+    # At most 128 MiB retained across two immutable uploads. One large page
+    # can exceed a cache budget; it still works without being retained.
+    return PageAnalysisCache(_open_doc(fid, _pdf_bytes))
+
+
 def _occupancy(fid: str, page_index: int, settings_key: tuple,
                _pdf_bytes: bytes, _settings: Settings):
-    doc = _open_doc(fid, _pdf_bytes)
-    return analyze_page(doc[page_index], _settings)
+    return _analysis_cache(fid, _pdf_bytes).get(page_index, _settings)
 
 
 # The stamped PDF is rendered lazily, when a download is actually clicked (see
