@@ -1,0 +1,47 @@
+name: Performance
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  profile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install runtime and optional profiling tools
+        run: python -m pip install -r requirements-profile.txt
+      - name: Correctness, bounded cache and five-second cold pipeline budget
+        run: python -m pytest tests/test_performance.py -q
+      - name: Uninstrumented before, after and warm-cache timings
+        run: |
+          python -m benchmarks.profile_pipeline --baseline --label before --repeats 9
+          python -m benchmarks.profile_pipeline --label after --repeats 9
+          python -m benchmarks.profile_pipeline --cache --label cached --repeats 9
+          python -m benchmarks.compare >> "$GITHUB_STEP_SUMMARY"
+      - name: Deterministic function and line-level profiles
+        run: |
+          python -m benchmarks.profile_pipeline --baseline --label before --mode cprofile --repeats 7
+          python -m benchmarks.profile_pipeline --label after --mode cprofile --repeats 7
+          python -m benchmarks.profile_pipeline --baseline --label before --mode lines --repeats 3
+          python -m benchmarks.profile_pipeline --label after --mode lines --repeats 3
+      - name: Sample both implementations with py-spy
+        run: |
+          py-spy record --rate 100 --format speedscope -o output/performance/before-py-spy.json -- python -m benchmarks.profile_pipeline --baseline --label before --mode sample --repeats 200
+          py-spy record --rate 100 --format speedscope -o output/performance/after-py-spy.json -- python -m benchmarks.profile_pipeline --label after --mode sample --repeats 200
+          python -m benchmarks.compare --sampling >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: drawing-pipeline-profiles
+          path: output/performance/
+          retention-days: 14

@@ -16,7 +16,7 @@ import fitz
 
 from .config import Settings
 from .engineer_box import detect_engineer_box
-from .occupancy import analyze_page, disk_coverage, find_min_ink_spot, PageOccupancy
+from .occupancy import analyze_page, disk_coverage, find_min_ink_spot, PageOccupancy, PageAnalysisCache
 
 # Bump this whenever placement logic changes. It is folded into the app's cache
 # keys so that a plain Streamlit "Rerun" (which keeps cached/session data alive)
@@ -130,16 +130,20 @@ def place_one_page(page: "fitz.Page", page_index: int, settings: Settings,
                      "whitespace", cov, pw, ph)
 
 
-def compute_placements(doc: "fitz.Document", settings: Settings) -> list[Placement]:
+def compute_placements(doc: "fitz.Document", settings: Settings,
+                       analysis_cache: PageAnalysisCache | None = None) -> list[Placement]:
     """Compute placements for every page, sorted by coverage descending.
 
     Fail explicitly when a page cannot be analysed or has no legal placement.
     A guessed corner with zero coverage would misrepresent an unreadable page.
     """
+    if analysis_cache is not None and analysis_cache.document is not doc:
+        raise ValueError("Analysis cache belongs to a different document")
     placements: list[Placement] = []
     for i in range(doc.page_count):
         try:
-            placements.append(place_one_page(doc[i], i, settings))
+            occ = analysis_cache.get(i, settings) if analysis_cache is not None else None
+            placements.append(place_one_page(doc[i], i, settings, occ=occ))
         except Exception as exc:
             raise ValueError(f"Could not place a stamp on page {i + 1}: {exc}") from exc
     placements.sort(key=lambda p: p.coverage, reverse=True)

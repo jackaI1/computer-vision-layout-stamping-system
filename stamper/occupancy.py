@@ -11,7 +11,9 @@ Everything works in *analysis pixels*; one analysis pixel equals
 
 from __future__ import annotations
 
+from collections import OrderedDict
 from dataclasses import dataclass
+from threading import RLock
 
 import fitz
 import numpy as np
@@ -40,7 +42,7 @@ def analyze_page(page: "fitz.Page", settings: Settings) -> PageOccupancy:
         colorspace=fitz.csGRAY,
         alpha=False,
     )
-    gray = np.frombuffer(pix.samples, dtype=np.uint8).reshape(pix.height, pix.width)
+    gray = np.frombuffer(pix.samples_mv, dtype=np.uint8).reshape(pix.height, pix.width)
     ink = gray < settings.ink_threshold
     integral = _integral_image(ink)
     return PageOccupancy(
@@ -52,13 +54,69 @@ def analyze_page(page: "fitz.Page", settings: Settings) -> PageOccupancy:
     )
 
 
+
+class PageAnalysisCache:
+    """Byte-bounded LRU analysis for one immutable, open PDF document.
+
+    A hit depends only on page number, analysis DPI and ink threshold. Seal
+    size, margins and preview settings do not change the raster or ink mask.
+    The owner must clear() after editing the document, and before closing it.
+    Entries larger than the budget are returned without retaining them. No
+    document, image or worker is opened by the cache itself.
+    """
+
+    def __init__(self, document: "fitz.Document", max_bytes: int = 64 * 1024 * 1024):
+        if max_bytes < 0:
+            raise ValueError("max_bytes must be nonnegative")
+        self.document = document
+        self.max_bytes = max_bytes
+        self._entries = OrderedDict()
+        self._bytes = 0
+        self._lock = RLock()
+
+    @property
+    def retained_bytes(self) -> int:
+        with self._lock:
+            return self._bytes
+
+    def clear(self) -> None:
+        with self._lock:
+            self._entries.clear()
+            self._bytes = 0
+
+    def get(self, page_index: int, settings: Settings) -> PageOccupancy:
+        with self._lock:
+            if self.document.is_closed:
+                raise ValueError("Analysis cache document is closed")
+            key = (page_index, settings.analysis_dpi, settings.ink_threshold)
+            if key in self._entries:
+                self._entries.move_to_end(key)
+                return self._entries[key]
+            occ = analyze_page(self.document[page_index], settings)
+            # Cached summaries are shared between searches and manual reviews.
+            occ.ink.flags.writeable = False
+            occ.integral.flags.writeable = False
+            size = occ.ink.nbytes + occ.integral.nbytes
+            if size <= self.max_bytes:
+                while self._entries and self._bytes + size > self.max_bytes:
+                    _, old = self._entries.popitem(last=False)
+                    self._bytes -= old.ink.nbytes + old.integral.nbytes
+                self._entries[key] = occ
+                self._bytes += size
+            return occ
+
+
 def _integral_image(mask: np.ndarray) -> np.ndarray:
     # uint32 is sufficient (the running count maxes out at H*W ink pixels, far
     # below 2**32) and halves the memory of this per-page table versus int64. The
     # summed-area identity a-b-c+e stays correct under unsigned wraparound because
     # every window sum lies in [0, H*W].
     out = np.zeros((mask.shape[0] + 1, mask.shape[1] + 1), dtype=np.uint32)
-    out[1:, 1:] = mask.cumsum(axis=0, dtype=np.uint32).cumsum(axis=1, dtype=np.uint32)
+    # Row-first traversal reads the boolean source contiguously. Both passes
+    # write into the final table, avoiding two H*W uint32 temporary arrays.
+    body = out[1:, 1:]
+    np.cumsum(mask, axis=1, dtype=np.uint32, out=body)
+    np.cumsum(body, axis=0, dtype=np.uint32, out=body)
     return out
 
 

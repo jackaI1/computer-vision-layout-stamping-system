@@ -1,6 +1,6 @@
 # Seal-stamping design/process FMEA register
 
-Document: QMS-FMEA-001, revision 4. **GENERATED**; edit `fmea.json`.
+Document: QMS-FMEA-001, revision 5. **GENERATED**; edit `fmea.json`.
 
 Method, scoring rubric and limits: [FMEA.md](FMEA.md). Regenerate with `python quality/fmea_report.py`.
 
@@ -139,8 +139,8 @@ High-severity modes (S >= 8) appear first, then descending RPN within each group
 
 - Effect: Changed settings can leave an automatic seal in a forbidden corner; an intentional manual move can cover content.
 - Cause: Session/cache reuse or an operator overrides keep-out; manual placements are deliberately not relocated.
-- Requirements: [REQ-09](TRACEABILITY_MATRIX.md), [REQ-10](TRACEABILITY_MATRIX.md), [REQ-15](TRACEABILITY_MATRIX.md)
-- Current prevention: Placement/render cache keys and download-time sanitization; manual decisions preserved with UI warning.
+- Requirements: [REQ-09](TRACEABILITY_MATRIX.md), [REQ-10](TRACEABILITY_MATRIX.md), [REQ-15](TRACEABILITY_MATRIX.md), [REQ-27](TRACEABILITY_MATRIX.md)
+- Current prevention: Placement/render cache keys and download-time sanitization; manual decisions preserved with UI warning. Document-bound byte-limited analysis caches invalidate on DPI/threshold and are explicitly cleared after document edits.
 - Current detection: Live download tests confirm stale relocation and preservation of manual edits; review still required for overrides.
 
 | Score | Current rating | Rationale |
@@ -151,7 +151,7 @@ High-severity modes (S >= 8) appear first, then descending RPN within each group
 
 | Action | Owner | Status | Acceptance / closure evidence | Verification tests |
 | --- | --- | --- | --- | --- |
-| ACT-09: Retain end-to-end downloaded-byte tests for late stale state and explicit manual edits. | Maintainer | verified_automated | Late automatic placement is sanitized and downloaded bytes reflect deliberate edits/removals. | [`tests/test_ui.py::test_download_sanitizes_late_stale_automatic_placement`](../tests/test_ui.py#L106)<br>[`tests/test_ui.py::test_manual_edits_and_removal_reach_live_download`](../tests/test_ui.py#L81) |
+| ACT-09: Retain end-to-end downloaded-byte tests for late stale state and explicit manual edits. | Maintainer | verified_automated | Late automatic placement is sanitized and downloaded bytes reflect deliberate edits/removals. Analysis ownership, invalidation and byte limits hold; four generated large sheets retain original placements and export inside the five-second cold budget. | [`tests/test_ui.py::test_download_sanitizes_late_stale_automatic_placement`](../tests/test_ui.py#L106)<br>[`tests/test_ui.py::test_manual_edits_and_removal_reach_live_download`](../tests/test_ui.py#L81)<br>[`tests/test_performance.py::test_cache_reuses_analysis_only_when_raster_inputs_match`](../tests/test_performance.py#L33)<br>[`tests/test_performance.py::test_cache_lru_eviction_oversize_and_document_ownership`](../tests/test_performance.py#L57)<br>[`tests/test_performance.py::test_cache_clear_after_document_edit`](../tests/test_performance.py#L83)<br>[`tests/test_performance.py::test_large_drawing_pipeline_matches_reference_and_time_budget`](../tests/test_performance.py#L95) |
 | ACT-10: Record each manual override and independently verify final clearance after bulk apply or settings changes. | Operator / independent checker | open | SOP-001 stamping record lists manual changes and A3/A4 results. Automatic tests do not authorize manual keep-out overlap. | [`tests/test_ui.py::test_download_sanitizes_late_stale_automatic_placement`](../tests/test_ui.py#L106)<br>[`tests/test_ui.py::test_manual_edits_and_removal_reach_live_download`](../tests/test_ui.py#L81) |
 
 ## FM-09
