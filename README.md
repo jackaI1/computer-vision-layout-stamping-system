@@ -19,11 +19,12 @@ generated sheets and a demonstration seal, with no client drawings or real
 professional seal. To try it, run the sample below and review the suggested
 positions in the browser. Applying an image does not approve a drawing.
 
-I also use a [station check](docs/station.md) to check that a drawing or seal
-carrier is loaded in a fixed position and that its two labels match the expected
-drawing and revision. It reports PASS or FAIL from an image. To try that example
-after the Python setup below, run `python -m stamper.station_demo`; it creates
-the images and a lighting-test report in `output/station/`.
+I also check for a missing item or the wrong drawing label before stamping.
+A carrier is a holder that keeps the item in a fixed position. My
+[image check](docs/station.md) checks that the holder is loaded and that its two
+labels match the expected drawing and revision. It reports PASS or FAIL. To try
+the example after the Python setup below, run `python -m stamper.station_demo`;
+it creates the images and a lighting-test report in `output/station/`.
 
 ## Try it
 
