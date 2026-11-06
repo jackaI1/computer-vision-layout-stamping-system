@@ -4,7 +4,7 @@ Document: QMS-FMEA-001, revision 5. **GENERATED**; edit `fmea.json`.
 
 Method, scoring rubric and limits: [FMEA.md](FMEA.md). Regenerate with `python quality/fmea_report.py`.
 
-**17 failure modes; 17 verified software actions; 17 open actions.** Scores describe current controls. No residual reduction or field failure rates are claimed. Software evidence is limited to synthetic tests; see the [executed IQ/OQ record](validation/IQ-OQ-EXECUTED.md).
+**18 failure modes; 18 verified software actions; 17 open actions.** Scores describe current controls. No residual reduction or field failure rates are claimed. Software evidence is limited to synthetic tests; see the [executed IQ/OQ record](validation/IQ-OQ-EXECUTED.md).
 
 High-severity modes (S >= 8) appear first, then descending RPN within each group. Review triggers do not constitute production acceptance.
 
@@ -24,6 +24,7 @@ High-severity modes (S >= 8) appear first, then descending RPN within each group
 | [FM-02](#fm-02) | design / Fit / keep-out | Automatic seal clips off page or enters reserved corner | 8 | 3 | 4 | 96 | Review before issue |
 | [FM-07](#fm-07) | design / Export PDF | Original content is degraded or unintentionally flattened | 8 | 3 | 4 | 96 | Review before issue |
 | [FM-10](#fm-10) | design / Validate / analyze inputs | Skipped or failed input is mistaken for a completed zero-coverage page | 8 | 3 | 3 | 72 | Review before issue |
+| [FM-18](#fm-18) | design / Earthwork quantity estimate | An estimated quantity misrepresents actual site earthwork | 7 | 5 | 6 | 210 | Review before issue |
 | [FM-14](#fm-14) | process / Change / revalidate | FMEA actions or validation evidence silently become stale | 7 | 4 | 3 | 84 | Planned improvement |
 | [FM-16](#fm-16) | process / Commercialization review | Readiness or IP decision cites missing or invented evidence | 5 | 3 | 5 | 75 | Maintain controls |
 | [FM-13](#fm-13) | design / Serve review preview | Dependency incompatibility prevents reliable visual review | 6 | 3 | 3 | 54 | Maintain controls |
@@ -321,6 +322,26 @@ High-severity modes (S >= 8) appear first, then descending RPN within each group
 | --- | --- | --- | --- | --- |
 | ACT-19: Retain rejected-input reasons and fail-explicit analysis checks. | Maintainer | verified_automated | Bad/encrypted input is rejected with a reason and an analysis failure identifies the page. | [`tests/test_controls.py::test_non_pdf_bytes_are_rejected_with_a_reason`](../tests/test_controls.py#L31)<br>[`tests/test_controls.py::test_password_protected_pdf_is_rejected_with_a_reason`](../tests/test_controls.py#L36)<br>[`tests/test_pipeline.py::test_analysis_failure_is_reported_instead_of_zero_coverage`](../tests/test_pipeline.py#L181) |
 | ACT-20: Resolve every skip/error and reconcile the source file list before handing over output. | Operator | open | Each expected source has an output or documented intentional exclusion; unresolved processing error blocks issue under SOP-001 section 8. | [`tests/test_controls.py::test_non_pdf_bytes_are_rejected_with_a_reason`](../tests/test_controls.py#L31)<br>[`tests/test_controls.py::test_password_protected_pdf_is_rejected_with_a_reason`](../tests/test_controls.py#L36)<br>[`tests/test_pipeline.py::test_analysis_failure_is_reported_instead_of_zero_coverage`](../tests/test_pipeline.py#L181) |
+
+## FM-18
+
+**An estimated quantity misrepresents actual site earthwork** (design; Earthwork quantity estimate).
+
+- Effect: The estimate could be used for an incorrect material or cost calculation.
+- Cause: Sparse contours, omitted breaklines, wrong elevations, units or grid spacing.
+- Requirements: [REQ-EARTHWORK-01](TRACEABILITY_MATRIX.md)
+- Current prevention: Reject incomplete hull coverage and conflicting elevations; document assumptions and require independent review.
+- Current detection: Hand-calculated cut and fill examples and coverage rejection tests.
+
+| Score | Current rating | Rationale |
+| --- | ---: | --- |
+| Severity | 7 | Incorrect estimates can affect project costs. |
+| Occurrence | 5 | Input quality and terrain complexity vary. |
+| Detection | 6 | Synthetic tests do not establish accuracy on a real site. |
+
+| Action | Owner | Status | Acceptance / closure evidence | Verification tests |
+| --- | --- | --- | --- | --- |
+| ACT-35: Check flat and sloped surfaces against hand calculations and reject insufficient survey coverage. | Maintainer | verified_automated | Calculated quantities match hand calculations and insufficient coverage is rejected. | [`tests/test_earthwork.py::test_sloping_ground_has_both_cut_and_fill`](../tests/test_earthwork.py#L51)<br>[`tests/test_earthwork.py::test_reject_pad_outside_survey`](../tests/test_earthwork.py#L40) |
 
 ## FM-14
 

@@ -78,6 +78,27 @@ main working area. DWG, AutoCAD's native format, also works with the separately
 installed free ODA converter. [The CAD guide](docs/cad.md) covers that setup,
 reference folders, plotting existing drawings, and limitations.
 
+## Estimate earthwork from a drawing
+
+I can also estimate how much soil a proposed flat or sloped pad needs removed
+(cut) or added (fill). A DXF is a drawing exchange file; contour lines describe
+the existing ground elevation and a closed outline describes the proposed pad.
+The command compares these two surfaces and writes a quantity table and a map.
+
+After the Python setup above, try the fictional 10 by 10 metre site:
+
+```sh
+python -m pip install -r requirements-earthwork.txt
+python examples/make_earthwork_sample.py
+python -m stamper.earthwork output/earthwork-input/site.dxf --output output/earthwork --spacing 1
+```
+
+Open `output/earthwork/quantities.csv` or `quantities.xlsx` for the table and
+`layout.pdf` for the drawing. The example has 25 cubic metres of cut and 25 of
+fill. Use `--contour-layer` and `--pad-layer` for different layer names. The
+[drawing and calculation guide](docs/earthwork.md) explains elevations, units,
+limits and how to check the grid spacing before relying on an estimate.
+
 ## Review before exporting
 
 I change the seal size, date and caption in the sidebar. By default, export
