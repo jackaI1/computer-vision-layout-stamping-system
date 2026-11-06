@@ -109,7 +109,9 @@ Its [saved py-spy summary](performance/py-spy-summary.json) records 4,272 total
 samples before and 3,273 after. The integral-image function was present in 2,490
 before samples (58.3%) and 1,745 after samples (53.3%). The sampler independently
 supports the integral step as the main cost; these inclusive counts include
-startup and are not exact stage timings. Both runs completed 200 full passes.
+startup and are not exact stage timings. Both runs completed 200 full passes. That recorded run used py-spy 0.4.1,
+which reported one failed sample before and none after; counts above include
+only successfully collected samples.
 
 Fresh Linux runs and full sampling profiles are saved by the
 [Performance workflow](../.github/workflows/performance.yml).
@@ -146,7 +148,11 @@ python -m benchmarks.compare --sampling
 
 [py-spy's documentation](https://github.com/benfred/py-spy#when-do-you-need-to-run-as-sudo)
 explains why macOS requires administrator access. I use the Linux CI job for
-that measurement; no Mac security setting needs to be changed. Each command
+that measurement; no Mac security setting needs to be changed. The toolchain
+now pins py-spy 0.4.3, which includes the
+[upstream child-process exit fix](https://github.com/benfred/py-spy/pull/871).
+An older-version rerun wrote its profile but exited with `No child process`;
+upgrading fixes that shutdown race without ignoring profiler failures. Each command
 exits after its finite workload and leaves no server or browser process.
 [line_profiler's API](https://kernprof.readthedocs.io/en/stable/auto/line_profiler.html)
 describes the per-line profiler used here.

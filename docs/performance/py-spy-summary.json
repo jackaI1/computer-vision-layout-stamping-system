@@ -20,5 +20,10 @@
   "source_run": "https://github.com/jackaI1/computer-vision-layout-stamping-system/actions/runs/42139019655",
   "source_commit": "4232d92",
   "rate_hz": 100,
-  "repeats_per_implementation": 200
+  "repeats_per_implementation": 200,
+  "py_spy_version": "0.4.1",
+  "sampling_errors": {
+    "before": 1,
+    "after": 0
+  }
 }

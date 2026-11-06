@@ -1,4 +1,5 @@
 # Optional measurement tools; runtime users do not need them.
 -r requirements-dev.txt
-py-spy==0.4.1
+# 0.4.3 fixes the ECHILD shutdown race in finite child-process recordings.
+py-spy==0.4.3
 line-profiler==5.0.0
