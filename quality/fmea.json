@@ -826,6 +826,42 @@
           "acceptance": "Record physical timing, fault and wiring trials and real image results before use. Software tests do not close this action."
         }
       ]
+    },
+    {
+      "id": "FM-18",
+      "type": "design",
+      "step": "Earthwork quantity estimate",
+      "failure_mode": "An estimated quantity misrepresents actual site earthwork",
+      "effects": "The estimate could be used for an incorrect material or cost calculation.",
+      "causes": "Sparse contours, omitted breaklines, wrong elevations, units or grid spacing.",
+      "requirements": [
+        "REQ-EARTHWORK-01"
+      ],
+      "prevention": "Reject incomplete hull coverage and conflicting elevations; document assumptions and require independent review.",
+      "detection_controls": "Hand-calculated cut and fill examples and coverage rejection tests.",
+      "scores": {
+        "severity": 7,
+        "occurrence": 5,
+        "detection": 6
+      },
+      "rationale": {
+        "severity": "Incorrect estimates can affect project costs.",
+        "occurrence": "Input quality and terrain complexity vary.",
+        "detection": "Synthetic tests do not establish accuracy on a real site."
+      },
+      "actions": [
+        {
+          "id": "ACT-35",
+          "description": "Check flat and sloped surfaces against hand calculations and reject insufficient survey coverage.",
+          "owner": "Maintainer",
+          "status": "verified_automated",
+          "verification_tests": [
+            "tests/test_earthwork.py::test_sloping_ground_has_both_cut_and_fill",
+            "tests/test_earthwork.py::test_reject_pad_outside_survey"
+          ],
+          "acceptance": "Calculated quantities match hand calculations and insufficient coverage is rejected."
+        }
+      ]
     }
   ]
 }

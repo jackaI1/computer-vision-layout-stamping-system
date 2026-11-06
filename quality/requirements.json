@@ -396,6 +396,19 @@
       "tests": [
         "tests/test_performance.py::*"
       ]
+    },
+    {
+      "id": "REQ-EARTHWORK-01",
+      "title": "DXF earthwork quantities",
+      "text": "The system shall estimate cut and fill from survey and proposed surfaces, export quantities and a layout, and reject a pad beyond survey coverage.",
+      "risk": "Medium",
+      "code": [
+        "stamper/earthwork.py::calculate",
+        "stamper/earthwork.py::run"
+      ],
+      "tests": [
+        "tests/test_earthwork.py::test_*"
+      ]
     }
   ]
 }
