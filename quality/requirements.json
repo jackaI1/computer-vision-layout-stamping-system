@@ -409,6 +409,54 @@
       "tests": [
         "tests/test_earthwork.py::test_*"
       ]
+    },
+    {
+      "id": "REQ-28",
+      "title": "Requirement import, stable IDs and baseline gaps",
+      "text": "The traceability tool shall import requirements from CSV and ReqIF, keep each requirement's ID stable across imports, fail when a requirement has no design element or no automated test, and list the gaps that changes between baselines introduce.",
+      "risk": "Medium",
+      "code": [
+        "quality/rtm.py::check",
+        "quality/rtm.py::diff",
+        "quality/rtm.py::coverage_markdown",
+        "quality/rtm_import.py::read_csv",
+        "quality/rtm_import.py::read_reqif",
+        "quality/rtm_import.py::write_reqif",
+        "quality/rtm_import.py::assign_ids"
+      ],
+      "tests": [
+        "tests/test_rtm.py::*"
+      ]
+    },
+    {
+      "id": "REQ-29",
+      "title": "Batch seal placement matches the reference search",
+      "text": "The batch least-ink search, including its GPU (Triton) and PyTorch backends, shall return the same seal position and coverage as the reference search for every page, including blank, full-ink, keep-out, bounded and too-small pages, and shall fall back to NumPy when no GPU or PyTorch is installed.",
+      "risk": "High",
+      "code": [
+        "stamper/window_search.py::find_min_ink_spots",
+        "stamper/window_search.py::_most_open_batch",
+        "stamper/window_search.py::_device_spots",
+        "stamper/occupancy.py::search_grid",
+        "stamper/occupancy.py::spot_from_sums"
+      ],
+      "tests": [
+        "tests/test_window_search.py::*"
+      ]
+    },
+    {
+      "id": "REQ-30",
+      "title": "Page search speed regression gate",
+      "text": "The benchmark shall measure latency and throughput of the batch page search for each available backend and batch size, verify that every backend returns the reference positions, and fail the build when a median latency exceeds its stored threshold.",
+      "risk": "Medium",
+      "code": [
+        "benchmarks/window_search_bench.py::run",
+        "benchmarks/window_search_bench.py::check",
+        "benchmarks/window_search_thresholds.json"
+      ],
+      "tests": [
+        "tests/test_window_search_bench.py::*"
+      ]
     }
   ]
 }

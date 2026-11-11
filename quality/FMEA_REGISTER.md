@@ -1,10 +1,10 @@
 # Seal-stamping design/process FMEA register
 
-Document: QMS-FMEA-001, revision 5. **GENERATED**; edit `fmea.json`.
+Document: QMS-FMEA-001, revision 6. **GENERATED**; edit `fmea.json`.
 
 Method, scoring rubric and limits: [FMEA.md](FMEA.md). Regenerate with `python quality/fmea_report.py`.
 
-**18 failure modes; 18 verified software actions; 17 open actions.** Scores describe current controls. No residual reduction or field failure rates are claimed. Software evidence is limited to synthetic tests; see the [executed IQ/OQ record](validation/IQ-OQ-EXECUTED.md).
+**21 failure modes; 21 verified software actions; 17 open actions.** Scores describe current controls. No residual reduction or field failure rates are claimed. Software evidence is limited to synthetic tests; see the [executed IQ/OQ record](validation/IQ-OQ-EXECUTED.md).
 
 High-severity modes (S >= 8) appear first, then descending RPN within each group. Review triggers do not constitute production acceptance.
 
@@ -26,8 +26,11 @@ High-severity modes (S >= 8) appear first, then descending RPN within each group
 | [FM-10](#fm-10) | design / Validate / analyze inputs | Skipped or failed input is mistaken for a completed zero-coverage page | 8 | 3 | 3 | 72 | Review before issue |
 | [FM-18](#fm-18) | design / Earthwork quantity estimate | An estimated quantity misrepresents actual site earthwork | 7 | 5 | 6 | 210 | Review before issue |
 | [FM-14](#fm-14) | process / Change / revalidate | FMEA actions or validation evidence silently become stale | 7 | 4 | 3 | 84 | Planned improvement |
+| [FM-20](#fm-20) | design / Batch least-ink page search | A batch backend (GPU or PyTorch) returns a different seal position than the reference search | 7 | 3 | 4 | 84 | Planned improvement |
 | [FM-16](#fm-16) | process / Commercialization review | Readiness or IP decision cites missing or invented evidence | 5 | 3 | 5 | 75 | Maintain controls |
+| [FM-21](#fm-21) | design / Page search speed gate | A slowdown in the page search is not reported | 4 | 4 | 4 | 64 | Maintain controls |
 | [FM-13](#fm-13) | design / Serve review preview | Dependency incompatibility prevents reliable visual review | 6 | 3 | 3 | 54 | Maintain controls |
+| [FM-19](#fm-19) | design / Requirements traceability gate | A requirement with no automated test passes the traceability gate | 6 | 3 | 3 | 54 | Maintain controls |
 
 ## FM-01
 
@@ -364,6 +367,26 @@ High-severity modes (S >= 8) appear first, then descending RPN within each group
 | ACT-27: Validate scores, ownership/status, exact related test IDs, high-severity review priority and generated-report freshness in CI. | Maintainer | verified_automated | Invalid/unrelated evidence fails; stale report returns nonzero without overwrite; S >= 8 triggers review even at low RPN. | [`tests/test_fmea.py::test_fmea_rejects_test_evidence_unrelated_to_linked_requirements`](../tests/test_fmea.py#L92)<br>[`tests/test_fmea.py::test_fmea_cli_detects_drift_and_invalid_input_without_overwriting`](../tests/test_fmea.py#L126)<br>[`tests/test_fmea.py::test_fmea_priority_keeps_high_severity_visible`](../tests/test_fmea.py#L60) |
 | ACT-28: Reassess scores/actions after deviations, new drawing families or changes to placement/export/settings/dependencies. | Tool owner / reviewer | open | Review FMEA with each change request, rerun CI/IQ-OQ and document representative PQ before production. Open actions require real evidence, not merely a linked test name. | [`tests/test_fmea.py::test_fmea_rejects_test_evidence_unrelated_to_linked_requirements`](../tests/test_fmea.py#L92)<br>[`tests/test_fmea.py::test_fmea_cli_detects_drift_and_invalid_input_without_overwriting`](../tests/test_fmea.py#L126)<br>[`tests/test_fmea.py::test_fmea_priority_keeps_high_severity_visible`](../tests/test_fmea.py#L60) |
 
+## FM-20
+
+**A batch backend (GPU or PyTorch) returns a different seal position than the reference search** (design; Batch least-ink page search).
+
+- Effect: A seal could be placed over ink or in a different position from the one the reviewed reference would choose.
+- Cause: Integer overflow, an index error in the Triton kernel, a tie-break that differs from the reference, or a keep-out mask applied to the wrong candidates.
+- Requirements: [REQ-29](TRACEABILITY_MATRIX.md)
+- Current prevention: Every backend must return identical spots; the reference function is shared for the grid and keep-out steps.
+- Current detection: Tests compare every available backend with the reference on random, blank, full-ink, keep-out, bounded, mixed-size and real rendered pages; CI runs the Triton kernel under its interpreter.
+
+| Score | Current rating | Rationale |
+| --- | ---: | --- |
+| Severity | 7 | A wrong seal position on a drawing is a visible review error. |
+| Occurrence | 3 | The kernel is new and only checked on CPU, so a GPU-only fault is possible. |
+| Detection | 4 | The GPU driver is not exercised in CI; real GPU timing and output on NVIDIA hardware is not yet verified. |
+
+| Action | Owner | Status | Acceptance / closure evidence | Verification tests |
+| --- | --- | --- | --- | --- |
+| ACT-37: Compare every batch backend with the reference position and coverage on blank, full-ink and keep-out pages. | Maintainer | verified_automated | Every backend returns the same Spot values as find_min_ink_spot for every tested page. | [`tests/test_window_search.py::test_random_pages_match_reference`](../tests/test_window_search.py#L55)<br>[`tests/test_window_search.py::test_blank_page_matches_reference_and_uses_open_space`](../tests/test_window_search.py#L66)<br>[`tests/test_window_search.py::test_full_ink_page_matches_reference_and_reports_full_coverage`](../tests/test_window_search.py#L76) |
+
 ## FM-16
 
 **Readiness or IP decision cites missing or invented evidence** (process; Commercialization review).
@@ -385,6 +408,26 @@ High-severity modes (S >= 8) appear first, then descending RPN within each group
 | ACT-31: Reject missing paths, unreviewed numbers and mismatched live publication identity. | Maintainer | verified_automated | Valid evidence passes; broken citations, invented numbers, mismatched metadata and network failure are rejected. | [`tests/test_commercialization.py::test_assessment_citations_and_cli`](../tests/test_commercialization.py#L23)<br>[`tests/test_commercialization.py::test_broken_or_invented_citations_fail`](../tests/test_commercialization.py#L37)<br>[`tests/test_commercialization.py::test_live_metadata_requires_number_and_title`](../tests/test_commercialization.py#L53)<br>[`tests/test_commercialization.py::test_network_failure_is_not_a_pass`](../tests/test_commercialization.py#L60) |
 | ACT-32: Obtain supervised pilot evidence and professional IP review before broader commercial release. | Tool owner | open | Record fixed-release field outcomes and legal review privately. Citation integrity is not acceptance of maturity or freedom to operate. | [`tests/test_commercialization.py::test_assessment_citations_and_cli`](../tests/test_commercialization.py#L23) |
 
+## FM-21
+
+**A slowdown in the page search is not reported** (design; Page search speed gate).
+
+- Effect: Large drawing batches become slow again without anyone noticing.
+- Cause: A threshold set too high, or a benchmark that times the wrong code path.
+- Requirements: [REQ-30](TRACEABILITY_MATRIX.md)
+- Current prevention: Thresholds are stored in a file and changed only with a change-log note; the benchmark checks its results against the reference before timing.
+- Current detection: CI runs the benchmark and fails when a median latency is above its threshold; tests cover the threshold comparison and a disagreeing backend.
+
+| Score | Current rating | Rationale |
+| --- | ---: | --- |
+| Severity | 4 | A slow batch delays work but does not change placements. |
+| Occurrence | 4 | Shared CI runners are noisy, so thresholds need headroom. |
+| Detection | 4 | Thresholds are measured on CI runners, not on the GPU workstations where the tool is used. |
+
+| Action | Owner | Status | Acceptance / closure evidence | Verification tests |
+| --- | --- | --- | --- | --- |
+| ACT-38: Gate the CPU benchmark medians against stored thresholds in CI and refuse a benchmark run that disagrees with the reference. | Maintainer | verified_automated | A timing above its threshold fails the check; a backend that disagrees with the reference stops the run. | [`tests/test_window_search_bench.py::test_check_fails_each_timing_above_its_threshold`](../tests/test_window_search_bench.py#L25)<br>[`tests/test_window_search_bench.py::test_run_fails_loudly_when_a_backend_disagrees`](../tests/test_window_search_bench.py#L54) |
+
 ## FM-13
 
 **Dependency incompatibility prevents reliable visual review** (design; Serve review preview).
@@ -405,3 +448,23 @@ High-severity modes (S >= 8) appear first, then descending RPN within each group
 | --- | --- | --- | --- | --- |
 | ACT-25: Keep preview response tests on the pinned runtime. | Maintainer | verified_automated | Media responses provide correct HTTP headers under identity and gzip encoding. | [`tests/test_runtime_compat.py::test_preview_media_responses_include_http_headers`](../tests/test_runtime_compat.py#L10) |
 | ACT-26: Stop issue when preview cannot be inspected; qualify the packaged Windows runtime separately before deployment. | Tool owner / operator | open | Correct runtime installed and every page inspected; Windows packaging/browser coverage is not claimed by source-environment tests. | [`tests/test_runtime_compat.py::test_preview_media_responses_include_http_headers`](../tests/test_runtime_compat.py#L10) |
+
+## FM-19
+
+**A requirement with no automated test passes the traceability gate** (design; Requirements traceability gate).
+
+- Effect: A stated requirement appears verified when no test checks it, so a release could ship with an unchecked rule.
+- Cause: A test pattern matches nothing, a test is linked to the wrong requirement, or an import drops the test links.
+- Requirements: [REQ-28](TRACEABILITY_MATRIX.md)
+- Current prevention: Every requirement must name at least one test that exists; the import keeps existing test links when a file omits them.
+- Current detection: Each DXL-style rule prints PASS or FAIL per requirement; CI runs the check on every change; tests cover missing tests, broken references and orphan tests.
+
+| Score | Current rating | Rationale |
+| --- | ---: | --- |
+| Severity | 6 | A missed gap hides an unverified rule but does not change the placed seal directly. |
+| Occurrence | 3 | Links are edited by hand, so mistakes are possible. |
+| Detection | 3 | The gate reads test names from the repository, so a missing link is reported; a test that passes but checks the wrong thing is not caught. |
+
+| Action | Owner | Status | Acceptance / closure evidence | Verification tests |
+| --- | --- | --- | --- | --- |
+| ACT-36: Fail CI on any requirement with no design element or test, and on any test linked to no requirement. | Maintainer | verified_automated | A requirement with no test makes the check exit 1 and name that requirement. | [`tests/test_rtm.py::test_check_fails_and_names_a_requirement_without_a_test`](../tests/test_rtm.py#L121)<br>[`tests/test_rtm.py::test_check_fails_on_orphan_test`](../tests/test_rtm.py#L143) |

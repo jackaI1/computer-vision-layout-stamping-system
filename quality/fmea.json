@@ -1,6 +1,6 @@
 {
   "document": "QMS-FMEA-001",
-  "revision": 5,
+  "revision": 6,
   "failure_modes": [
     {
       "id": "FM-01",
@@ -860,6 +860,115 @@
             "tests/test_earthwork.py::test_reject_pad_outside_survey"
           ],
           "acceptance": "Calculated quantities match hand calculations and insufficient coverage is rejected."
+        }
+      ]
+    },
+    {
+      "id": "FM-19",
+      "type": "design",
+      "step": "Requirements traceability gate",
+      "failure_mode": "A requirement with no automated test passes the traceability gate",
+      "effects": "A stated requirement appears verified when no test checks it, so a release could ship with an unchecked rule.",
+      "causes": "A test pattern matches nothing, a test is linked to the wrong requirement, or an import drops the test links.",
+      "requirements": [
+        "REQ-28"
+      ],
+      "prevention": "Every requirement must name at least one test that exists; the import keeps existing test links when a file omits them.",
+      "detection_controls": "Each DXL-style rule prints PASS or FAIL per requirement; CI runs the check on every change; tests cover missing tests, broken references and orphan tests.",
+      "scores": {
+        "severity": 6,
+        "occurrence": 3,
+        "detection": 3
+      },
+      "rationale": {
+        "severity": "A missed gap hides an unverified rule but does not change the placed seal directly.",
+        "occurrence": "Links are edited by hand, so mistakes are possible.",
+        "detection": "The gate reads test names from the repository, so a missing link is reported; a test that passes but checks the wrong thing is not caught."
+      },
+      "actions": [
+        {
+          "id": "ACT-36",
+          "description": "Fail CI on any requirement with no design element or test, and on any test linked to no requirement.",
+          "owner": "Maintainer",
+          "status": "verified_automated",
+          "verification_tests": [
+            "tests/test_rtm.py::test_check_fails_and_names_a_requirement_without_a_test",
+            "tests/test_rtm.py::test_check_fails_on_orphan_test"
+          ],
+          "acceptance": "A requirement with no test makes the check exit 1 and name that requirement."
+        }
+      ]
+    },
+    {
+      "id": "FM-20",
+      "type": "design",
+      "step": "Batch least-ink page search",
+      "failure_mode": "A batch backend (GPU or PyTorch) returns a different seal position than the reference search",
+      "effects": "A seal could be placed over ink or in a different position from the one the reviewed reference would choose.",
+      "causes": "Integer overflow, an index error in the Triton kernel, a tie-break that differs from the reference, or a keep-out mask applied to the wrong candidates.",
+      "requirements": [
+        "REQ-29"
+      ],
+      "prevention": "Every backend must return identical spots; the reference function is shared for the grid and keep-out steps.",
+      "detection_controls": "Tests compare every available backend with the reference on random, blank, full-ink, keep-out, bounded, mixed-size and real rendered pages; CI runs the Triton kernel under its interpreter.",
+      "scores": {
+        "severity": 7,
+        "occurrence": 3,
+        "detection": 4
+      },
+      "rationale": {
+        "severity": "A wrong seal position on a drawing is a visible review error.",
+        "occurrence": "The kernel is new and only checked on CPU, so a GPU-only fault is possible.",
+        "detection": "The GPU driver is not exercised in CI; real GPU timing and output on NVIDIA hardware is not yet verified."
+      },
+      "actions": [
+        {
+          "id": "ACT-37",
+          "description": "Compare every batch backend with the reference position and coverage on blank, full-ink and keep-out pages.",
+          "owner": "Maintainer",
+          "status": "verified_automated",
+          "verification_tests": [
+            "tests/test_window_search.py::test_random_pages_match_reference",
+            "tests/test_window_search.py::test_blank_page_matches_reference_and_uses_open_space",
+            "tests/test_window_search.py::test_full_ink_page_matches_reference_and_reports_full_coverage"
+          ],
+          "acceptance": "Every backend returns the same Spot values as find_min_ink_spot for every tested page."
+        }
+      ]
+    },
+    {
+      "id": "FM-21",
+      "type": "design",
+      "step": "Page search speed gate",
+      "failure_mode": "A slowdown in the page search is not reported",
+      "effects": "Large drawing batches become slow again without anyone noticing.",
+      "causes": "A threshold set too high, or a benchmark that times the wrong code path.",
+      "requirements": [
+        "REQ-30"
+      ],
+      "prevention": "Thresholds are stored in a file and changed only with a change-log note; the benchmark checks its results against the reference before timing.",
+      "detection_controls": "CI runs the benchmark and fails when a median latency is above its threshold; tests cover the threshold comparison and a disagreeing backend.",
+      "scores": {
+        "severity": 4,
+        "occurrence": 4,
+        "detection": 4
+      },
+      "rationale": {
+        "severity": "A slow batch delays work but does not change placements.",
+        "occurrence": "Shared CI runners are noisy, so thresholds need headroom.",
+        "detection": "Thresholds are measured on CI runners, not on the GPU workstations where the tool is used."
+      },
+      "actions": [
+        {
+          "id": "ACT-38",
+          "description": "Gate the CPU benchmark medians against stored thresholds in CI and refuse a benchmark run that disagrees with the reference.",
+          "owner": "Maintainer",
+          "status": "verified_automated",
+          "verification_tests": [
+            "tests/test_window_search_bench.py::test_check_fails_each_timing_above_its_threshold",
+            "tests/test_window_search_bench.py::test_run_fails_loudly_when_a_backend_disagrees"
+          ],
+          "acceptance": "A timing above its threshold fails the check; a backend that disagrees with the reference stops the run."
         }
       ]
     }

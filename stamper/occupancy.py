@@ -179,6 +179,101 @@ class Spot:
     coverage: float  # fraction of footprint that is ink (0..1)
 
 
+@dataclass(frozen=True)
+class SearchGrid:
+    """Candidate seal positions on one page, shared by the reference and batch search."""
+    d: int               # footprint side, in analysis pixels
+    xs: np.ndarray       # candidate top-left x positions (pixels)
+    ys: np.ndarray       # candidate top-left y positions (pixels)
+    step: int            # pixels between neighbouring candidates
+    scale: float         # analysis pixels per point
+
+
+def search_grid(
+    occ: PageOccupancy,
+    diameter_pt: float,
+    settings: Settings,
+    bounds_pt: tuple[float, float, float, float] | None = None,
+) -> SearchGrid | None:
+    """Candidate grid inside the margins (or inside ``bounds_pt``); ``None`` if none fits."""
+    s = occ.scale
+    d = max(1, int(np.ceil(diameter_pt * s)))
+    H, W = occ.ink.shape
+
+    if bounds_pt is None:
+        # Per-side page padding (display space): keep the seal centre far enough
+        # from each edge that the whole footprint stays inside the padded region.
+        x0 = settings.margin_left_pt * s
+        y0 = settings.margin_top_pt * s
+        x1 = W - settings.margin_right_pt * s
+        y1 = H - settings.margin_bottom_pt * s
+    else:
+        bx0, by0, bx1, by1 = (v * s for v in bounds_pt)
+        x0, y0, x1, y1 = bx0, by0, bx1, by1
+
+    x_lo, x_hi = int(np.ceil(max(0, x0))), int(np.floor(min(W, x1))) - d
+    y_lo, y_hi = int(np.ceil(max(0, y0))), int(np.floor(min(H, y1))) - d
+    if x_hi < x_lo or y_hi < y_lo:
+        return None
+
+    step = max(1, int(round(settings.search_step_pt * s)))
+    xs = np.arange(x_lo, x_hi + 1, step)
+    ys = np.arange(y_lo, y_hi + 1, step)
+    if xs.size == 0 or ys.size == 0:
+        return None
+    return SearchGrid(d, xs, ys, step, s)
+
+
+def keepout_blocked(
+    grid: SearchGrid,
+    diameter_pt: float,
+    keepout_rects_pt: list[tuple[float, float, float, float]] | None,
+) -> np.ndarray | None:
+    """(ny, nx) mask of candidates whose footprint touches a keep-out rectangle."""
+    if not keepout_rects_pt:
+        return None
+    cx = (grid.xs + grid.d / 2.0) / grid.scale  # centre in points, shape (len xs,)
+    cy = (grid.ys + grid.d / 2.0) / grid.scale
+    half = diameter_pt / 2.0
+    blocked = np.zeros((len(grid.ys), len(grid.xs)), dtype=bool)
+    for (kx0, ky0, kx1, ky1) in keepout_rects_pt:
+        overlap_x = (cx + half > kx0) & (cx - half < kx1)   # (len xs,)
+        overlap_y = (cy + half > ky0) & (cy - half < ky1)   # (len ys,)
+        blocked |= overlap_y[:, None] & overlap_x[None, :]
+    return blocked
+
+
+def spot_from_sums(
+    sums: np.ndarray,
+    grid: SearchGrid,
+    integral: np.ndarray,
+    maximize_clearance: bool,
+) -> Spot | None:
+    """Choose the winning candidate from ``sums``, the (ny, nx) ink per footprint.
+
+    ``inf`` marks a candidate that is not allowed (for example, one over a keep-out).
+    Least ink wins. Ties go to the most open space when ``maximize_clearance`` is set,
+    and otherwise to the first candidate in row-major order.
+    """
+    if not np.isfinite(sums).any():
+        return None
+    best = sums.min()
+    eligible = sums == best
+    flat = None
+    if maximize_clearance and int(eligible.sum()) > 1:
+        flat = _most_open_candidate(integral, grid.xs, grid.ys, grid.d, eligible)
+    if flat is None:
+        flat = int(np.argmin(sums))
+    iy, ix = np.unravel_index(flat, sums.shape)
+    best_x0 = grid.xs[ix]
+    best_y0 = grid.ys[iy]
+    coverage = float(sums[iy, ix]) / float(grid.d * grid.d)
+
+    center_x_pt = (best_x0 + grid.d / 2.0) / grid.scale
+    center_y_pt = (best_y0 + grid.d / 2.0) / grid.scale
+    return Spot(center_x_pt, center_y_pt, coverage)
+
+
 def find_min_ink_spot(
     occ: PageOccupancy,
     diameter_pt: float,
@@ -206,67 +301,18 @@ def find_min_ink_spot(
     bounds_pt:
         Optional sub-region to restrict the search to (used to place inside a
         detected cell). Defaults to the whole page minus the margin.
+
+    :mod:`stamper.window_search` runs this same scan for many pages at once and
+    must return the same spots; its tests compare the two.
     """
-    s = occ.scale
-    d = max(1, int(np.ceil(diameter_pt * s)))
-    H, W = occ.ink.shape
-
-    if bounds_pt is None:
-        # Per-side page padding (display space): keep the seal centre far enough
-        # from each edge that the whole footprint stays inside the padded region.
-        x0 = settings.margin_left_pt * s
-        y0 = settings.margin_top_pt * s
-        x1 = W - settings.margin_right_pt * s
-        y1 = H - settings.margin_bottom_pt * s
-    else:
-        bx0, by0, bx1, by1 = (v * s for v in bounds_pt)
-        x0, y0, x1, y1 = bx0, by0, bx1, by1
-
-    x_lo, x_hi = int(np.ceil(max(0, x0))), int(np.floor(min(W, x1))) - d
-    y_lo, y_hi = int(np.ceil(max(0, y0))), int(np.floor(min(H, y1))) - d
-    if x_hi < x_lo or y_hi < y_lo:
+    grid = search_grid(occ, diameter_pt, settings, bounds_pt)
+    if grid is None:
         return None
-
-    step = max(1, int(round(settings.search_step_pt * s)))
-    xs = np.arange(x_lo, x_hi + 1, step)
-    ys = np.arange(y_lo, y_hi + 1, step)
-    if xs.size == 0 or ys.size == 0:
-        return None
-
-    sums = _window_sums(occ.integral, ys, xs, d).astype(np.float64)
-
-    # Disqualify candidates whose footprint touches a keep-out rectangle.
-    if keepout_rects_pt:
-        cx = (xs + d / 2.0) / s  # center in points, shape (len xs,)
-        cy = (ys + d / 2.0) / s
-        half = diameter_pt / 2.0
-        for (kx0, ky0, kx1, ky1) in keepout_rects_pt:
-            overlap_x = (cx + half > kx0) & (cx - half < kx1)   # (len xs,)
-            overlap_y = (cy + half > ky0) & (cy - half < ky1)   # (len ys,)
-            block = overlap_y[:, None] & overlap_x[None, :]
-            sums[block] = np.inf
-
-    if not np.isfinite(sums).any():
-        return None
-
-    # Primary criterion: least ink under the footprint. Tie-break: when several
-    # candidates share that minimum, prefer the one sitting in the most open
-    # space, so a seal that could go anywhere ends up as isolated as possible.
-    best = sums.min()
-    eligible = sums == best
-    flat = None
-    if settings.maximize_clearance and int(eligible.sum()) > 1:
-        flat = _most_open_candidate(occ.integral, xs, ys, d, eligible)
-    if flat is None:
-        flat = int(np.argmin(sums))
-    iy, ix = np.unravel_index(flat, sums.shape)
-    best_x0 = xs[ix]
-    best_y0 = ys[iy]
-    coverage = float(sums[iy, ix]) / float(d * d)
-
-    center_x_pt = (best_x0 + d / 2.0) / s
-    center_y_pt = (best_y0 + d / 2.0) / s
-    return Spot(center_x_pt, center_y_pt, coverage)
+    sums = _window_sums(occ.integral, grid.ys, grid.xs, grid.d).astype(np.float64)
+    blocked = keepout_blocked(grid, diameter_pt, keepout_rects_pt)
+    if blocked is not None:
+        sums[blocked] = np.inf
+    return spot_from_sums(sums, grid, occ.integral, settings.maximize_clearance)
 
 
 def disk_coverage(occ: PageOccupancy, center_x_pt: float, center_y_pt: float,

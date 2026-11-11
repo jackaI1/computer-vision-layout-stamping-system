@@ -1,0 +1,4 @@
+id,title,text,risk,code,tests
+SYS-101,Stamped PDF keeps its original content,The stamped PDF must show every line of the original drawing unchanged.,High,stamper/pdf_writer.py::render_stamped_pdf,tests/test_pipeline.py::test_pdf_overlay_preserves_content_and_upright_geometry
+SYS-102,Seal stays off the reserved corner,The seal must not cover the top-right corner kept for the title block.,High,stamper/placement.py::intersects_keepout,tests/test_occupancy.py::test_keepout_rectangle_is_avoided
+SYS-103,Warn when a sheet has no drawing label,A sheet without a readable label must be reported to the operator.,Medium,stamper/station.py,
