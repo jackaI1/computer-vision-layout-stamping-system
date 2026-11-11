@@ -173,9 +173,10 @@ the NumPy code the app already uses. Each batch result is checked to match the
 original search exactly.
 
 The app does not call the batch search yet. It is a separate function with a
-benchmark. On my Mac CPU the PyTorch path ran at about the same speed as NumPy, so I
-expect the gain on a GPU, which the free CI runners do not have. The GPU timings and
-the Nsight Systems trace have not been measured yet.
+benchmark. On a CPU the PyTorch path was slower than the NumPy version: about twice as
+slow on the free CI runner. So on a machine without a GPU the search uses NumPy. I
+expect the speed gain on a GPU, which the free CI runners do not have. The GPU timings
+and the Nsight Systems trace have not been measured yet.
 
 ```sh
 python -m pip install -r requirements-gpu.txt   # optional: PyTorch and Triton
@@ -190,6 +191,11 @@ PyTorch Profiler table to `output/window-search/`, which shows where the time go
 The third compares the timings with stored limits and fails if one is too slow.
 [The design notes](docs/gpu-search.md) explain the kernel, the profiling commands
 and the Nsight Systems command for a GPU workstation.
+
+The free CI runner timed a batch of 16 pages at 318 ms with NumPy and 676 ms with
+PyTorch, on a CPU. An earlier run gave 207 ms and 425 ms, so the runner varies by
+about 1.5 times. The stored limits are about twice the slowest time I have seen. The
+GPU workflow runs 34 tests, including the Triton kernel under its interpreter.
 
 ## Check a labelled part
 

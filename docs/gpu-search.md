@@ -75,5 +75,6 @@ time on the GPU. This has not been run yet; no NVIDIA GPU was available for it.
 ## Not done yet
 
 - The app does not call the batch search; the single-page path is unchanged.
+- The PyTorch CPU path is slower than NumPy, so `auto` never picks it on a CPU.
 - GPU latency and throughput are not measured. CI measures only the CPU backends.
 - The Triton kernel has only been run in the interpreter, not on a GPU.
