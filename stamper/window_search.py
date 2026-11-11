@@ -19,7 +19,9 @@ Backends (``backend=`` argument):
 ``"numpy"``
     Calls :func:`find_min_ink_spot` once per page. This is the reference.
 ``"auto"``
-    Triton when CUDA is available, otherwise torch, otherwise numpy.
+    Triton when CUDA is available, otherwise numpy. On a CPU the NumPy reference
+    was faster than the PyTorch CPU path in the benchmark, so torch is only used
+    when asked for by name.
 
 Pages are grouped by size and scale, because one candidate grid applies to all
 pages of the same size. Results come back in the input order.
@@ -80,7 +82,7 @@ def resolve_backend(backend: str = "auto") -> str:
         return backend
     if triton_available() and cuda_available():
         return "triton"
-    return "torch" if _torch() is not None else "numpy"
+    return "numpy"
 
 
 if triton is not None:  # pragma: no branch - the kernel is only defined with Triton

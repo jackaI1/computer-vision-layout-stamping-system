@@ -30,7 +30,8 @@ search for all pages in one loop.
   the host, and runs the scan on one device.
 - Backends: `triton` (a Triton kernel for the window sums), `torch` (the same sums
   with PyTorch tensors), `numpy` (calls the reference per page), and `auto` (Triton
-  when CUDA is available, otherwise torch, otherwise numpy).
+  when CUDA is available, otherwise numpy). `torch` is never chosen automatically on a
+  CPU, because the CPU benchmark was slower than NumPy.
 - The tie-break `_most_open_batch` follows the reference binary search line by line.
   "First candidate in row-major order" is kept by `torch.argmax`/`scatter_reduce`
   semantics, which return the first maximum.

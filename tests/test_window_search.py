@@ -142,11 +142,15 @@ def test_auto_uses_reference_when_torch_is_missing(monkeypatch):
     assert ws.find_min_ink_spots(occs, 14.0, settings) == reference(occs, 14.0, settings)
 
 
-def test_resolve_backend_auto_is_never_the_interpreter(monkeypatch):
-    # Without CUDA the interpreter is too slow for production, so auto must not pick it.
+def test_resolve_backend_auto_is_never_the_interpreter_or_torch_on_cpu(monkeypatch):
+    # Without CUDA the interpreter is far too slow, and the NumPy reference is faster
+    # than the PyTorch CPU path, so auto must choose NumPy.
     monkeypatch.setattr(ws, "cuda_available", lambda: False)
     monkeypatch.setenv("TRITON_INTERPRET", "1")
-    assert ws.resolve_backend("auto") in ("torch", "numpy")
+    assert ws.resolve_backend("auto") == "numpy"
+    monkeypatch.setattr(ws, "cuda_available", lambda: True)
+    monkeypatch.setattr(ws, "triton_available", lambda: True)
+    assert ws.resolve_backend("auto") == "triton"
 
 
 def test_real_rendered_page_matches_reference(tmp_path):
