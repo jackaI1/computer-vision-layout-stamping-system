@@ -1,0 +1,7 @@
+# Optional: the batch page search in stamper/window_search.py.
+# Without these packages it runs on NumPy. CI installs the CPU build of torch and
+# runs the Triton kernel in its interpreter (TRITON_INTERPRET=1), so no GPU is needed.
+# On a Linux machine with an NVIDIA GPU, install the CUDA build of torch from
+# https://pytorch.org first, then the line below.
+torch==2.8.0
+triton==3.4.0; sys_platform == "linux" and platform_machine == "x86_64"

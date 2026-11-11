@@ -1,0 +1,8 @@
+{
+  "_comment": "Maximum median latency in milliseconds per backend and batch size, measured on the generated drawing corpus (benchmarks/window_search_bench.py). Set above the measured CI-runner time with headroom, so only a real slowdown fails the gate. Raise a value only with a note in quality/CHANGE_LOG.md.",
+  "max_median_ms": {
+    "numpy": {"1": 40, "4": 160, "16": 600},
+    "torch": {"1": 80, "4": 320, "16": 1200},
+    "triton": {"1": 80, "4": 320, "16": 1200}
+  }
+}

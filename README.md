@@ -162,6 +162,35 @@ identical. [My performance notes](docs/performance.md) explain the measurements,
 function and line timing, and sampled call stacks, which show where the program
 spends time. The commands save their reports in `output/performance/`.
 
+## Search many pages at once on a GPU
+
+The tool searches each page for the quietest spot, where the least ink lies under
+the seal. Working through a large batch of sheets one page at a time is slow, so I
+built a batch version. It runs the search for many pages together. A Triton kernel,
+a small program written in Python that runs on the graphics card, does the counting
+for each candidate position. If there is no GPU, or PyTorch is not installed, it uses
+the NumPy code the app already uses. Each batch result is checked to match the
+original search exactly.
+
+The app does not call the batch search yet. It is a separate function with a
+benchmark. On my Mac CPU the PyTorch path ran at about the same speed as NumPy, so I
+expect the gain on a GPU, which the free CI runners do not have. The GPU timings and
+the Nsight Systems trace have not been measured yet.
+
+```sh
+python -m pip install -r requirements-gpu.txt   # optional: PyTorch and Triton
+python -m benchmarks.window_search_bench --output output/window-search/benchmark.json
+python -m benchmarks.window_search_profile --backend torch
+python -m benchmarks.window_search_bench --check benchmarks/window_search_thresholds.json --report output/window-search/benchmark.json
+```
+
+The first command times each backend on batches of 1, 4 and 16 generated pages and
+checks that every backend returns the same seal positions. The second writes a
+PyTorch Profiler table to `output/window-search/`, which shows where the time goes.
+The third compares the timings with stored limits and fails if one is too slow.
+[The design notes](docs/gpu-search.md) explain the kernel, the profiling commands
+and the Nsight Systems command for a GPU workstation.
+
 ## Check a labelled part
 
 The station command compares a camera image with an empty fixture image. It
@@ -206,6 +235,7 @@ python -m pip install -r requirements-dev.txt
 python -m pytest -q
 python quality/fmea_report.py --check
 python quality/trace_matrix.py --check
+python quality/rtm.py check
 python quality/oq_report.py --check
 ```
 
@@ -221,6 +251,39 @@ exporting four large sheets, checks cache invalidation and memory limits, and
 saves before/after profiles as downloadable CI artifacts.
 Continuous integration (CI), the checks GitHub runs for each change, also rejects
 stale risk registers, requirement links and saved test records.
+
+## Track requirements and their tests
+
+I built a requirements checker because the tool's rules were in one file and I could
+not easily see which rule had no test behind it. A requirement is a rule the tool must
+follow, such as "the seal stays off the reserved corner". A test is an automated check
+that fails when the rule breaks. The checker links each requirement to the code it
+covers and to the tests that check it. It fails the build when a requirement has no
+test. It is a free, small version of what IBM DOORS does, the requirements tool that
+large teams often pay for.
+
+It reads requirements from a spreadsheet saved as CSV, or from a ReqIF file, the
+exchange format DOORS uses. Each requirement keeps its ID after every import, so a
+link to it does not break. When I save a baseline, a snapshot of the requirements at
+one point in time, the `diff` command lists what was added, removed or reworded since
+then. It also points out a changed rule whose tests did not change with it.
+
+```sh
+python quality/rtm.py check            # PASS or FAIL for each rule; fails on any gap
+python quality/rtm.py coverage         # one row per requirement: design element, tests, status
+python quality/rtm.py diff B1          # what changed since baseline B1, and the gaps
+python quality/rtm.py import examples/requirements/sample_requirements.csv
+```
+
+The import shown is a dry run: it prints the IDs it would give and writes nothing.
+Add `--write` to merge the requirements into `quality/requirements.json`. Export goes
+the other way: `python quality/rtm.py export out.reqif`.
+
+The check follows the style of a DOORS DXL script, a small program that visits each
+object in a module. Mine is Python, and CI runs it on every change. The
+[design notes](docs/traceability.md) list the rules, the ID rules and the limits.
+This is not a replacement for DOORS: it has no multi-user editing, history of who
+changed what, or signatures.
 
 ## Demo
 

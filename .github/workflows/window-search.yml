@@ -1,0 +1,50 @@
+name: GPU page search
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  triton-kernel:
+    # GitHub's free runners have no GPU. TRITON_INTERPRET=1 runs the Triton kernel in
+    # Python on the CPU, so the kernel itself is checked on every change. Real GPU
+    # timings and Nsight Systems traces need an NVIDIA machine; see docs/gpu-search.md.
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      TRITON_INTERPRET: "1"
+      WINDOW_SEARCH_REQUIRE_TRITON: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install pinned dependencies, CPU build of PyTorch, and Triton
+        run: |
+          python -m pip install -r requirements-dev.txt -r requirements-earthwork.txt
+          python -m pip install torch==2.8.0 --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install -r requirements-gpu.txt
+      - name: Triton kernel, PyTorch and NumPy backends match the reference search
+        run: python -m pytest tests/test_window_search.py tests/test_window_search_bench.py -q
+      - name: Benchmark run and latency regression gate
+        run: |
+          python -m benchmarks.window_search_bench --output output/window-search/benchmark.json
+          python -m benchmarks.window_search_bench --check benchmarks/window_search_thresholds.json --report output/window-search/benchmark.json
+      - name: PyTorch Profiler operator table and trace
+        run: python -m benchmarks.window_search_profile --backend torch
+      - name: Write benchmark summary
+        if: always()
+        run: |
+          echo '### Batch page search (CPU, TRITON_INTERPRET for the kernel)' >> "$GITHUB_STEP_SUMMARY"
+          python -c "import json,sys; r=json.load(open('output/window-search/benchmark.json')); print('| backend | batch | median ms | pages/s |'); print('| --- | ---: | ---: | ---: |'); [print(f\"| {x['backend']} | {x['batch']} | {x['median_ms']} | {x['pages_per_second']} |\") for x in r['results']]" >> "$GITHUB_STEP_SUMMARY" || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: window-search-benchmark
+          path: output/window-search/
+          retention-days: 14
